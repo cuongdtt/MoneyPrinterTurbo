@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Video Provider Decision Sheet — MoneyPrinterTurbo</title>
+  <style>
+    :root {
+      --ink: #192324;
+      --muted: #617071;
+      --paper: #f3f7f4;
+      --panel: #fbfdfb;
+      --rule: #cbd6d0;
+      --accent: #005f59;
+      --accent-soft: #d9ece6;
+      --warm: #d97736;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      line-height: 1.45;
+    }
+
+    .shell { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+      padding: 52px 0 34px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .eyebrow, .kicker {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font: 700 12px/1 var(--mono);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 760px;
+      margin-bottom: 0;
+      font-size: clamp(2.2rem, 6vw, 4.8rem);
+      line-height: .98;
+      letter-spacing: -.065em;
+      font-weight: 760;
+    }
+    .stamp {
+      max-width: 210px;
+      padding: 12px 14px;
+      border: 1px solid var(--rule);
+      color: var(--muted);
+      background: rgba(251,253,251,.72);
+      font-size: 13px;
+    }
+    .lead {
+      max-width: 800px;
+      margin: 30px 0 42px;
+      color: var(--muted);
+      font-size: clamp(1rem, 2vw, 1.22rem);
+    }
+
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+    }
+    .provider {
+      min-height: 510px;
+      padding: 26px;
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+    }
+    .provider.featured { background: var(--accent-soft); }
+    .provider-name {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      border-bottom: 1px solid currentColor;
+      padding-bottom: 15px;
+    }
+    .provider-name h2 { margin: 0; font-size: 30px; letter-spacing: -.04em; }
+    .provider-name span { color: var(--muted); font: 12px var(--mono); }
+    .thesis { margin: 22px 0; font-size: 17px; font-weight: 600; letter-spacing: -.015em; }
+    dl { margin: 0; }
+    dt { margin-top: 15px; color: var(--muted); font: 700 11px var(--mono); letter-spacing: .07em; text-transform: uppercase; }
+    dd { margin: 4px 0 0; font-size: 14px; }
+    .fit {
+      margin-top: auto;
+      padding-top: 22px;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .decision {
+      display: grid;
+      grid-template-columns: 1.08fr 1.92fr;
+      gap: 48px;
+      margin: 72px 0;
+      padding-top: 1px;
+    }
+    .decision h2 { margin-bottom: 12px; font-size: 31px; line-height: 1.04; letter-spacing: -.045em; }
+    .decision p { color: var(--muted); }
+    .matrix { border-top: 1px solid var(--ink); }
+    .matrix-row {
+      display: grid;
+      grid-template-columns: 165px repeat(3, 1fr);
+      gap: 16px;
+      align-items: center;
+      min-height: 64px;
+      border-bottom: 1px solid var(--rule);
+      font-size: 14px;
+    }
+    .matrix-row.header { min-height: 42px; color: var(--muted); font: 700 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+    .matrix-row > :first-child { font-weight: 700; }
+    .yes { color: var(--accent); font-weight: 750; }
+    .limited { color: var(--warm); font-weight: 750; }
+
+    .implementation {
+      display: grid;
+      grid-template-columns: 210px 1fr;
+      gap: 24px;
+      padding: 28px 0;
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+    }
+    .implementation h2 { margin: 0; font-size: 23px; letter-spacing: -.035em; }
+    .implementation p { margin: 0; color: var(--muted); }
+    code { padding: 2px 5px; background: #e5ece8; font-family: var(--mono); font-size: .9em; }
+    .guide { margin: 72px 0; }
+    .guide-header { display: grid; grid-template-columns: 1.08fr 1.92fr; gap: 48px; margin-bottom: 28px; }
+    .guide h2 { margin-bottom: 12px; font-size: 31px; line-height: 1.04; letter-spacing: -.045em; }
+    .guide-header p { color: var(--muted); }
+    .setup-note { padding: 20px 22px; border-left: 4px solid var(--accent); background: var(--accent-soft); }
+    .setup-note h3 { margin-bottom: 8px; font-size: 16px; }
+    .setup-note p { margin: 0; color: var(--muted); }
+    .quick-config { overflow-x: auto; margin: 24px 0; padding: 20px; background: var(--ink); color: var(--paper); font: 13px/1.55 var(--mono); }
+    .quick-config code { padding: 0; color: inherit; background: transparent; }
+    .setup-table { overflow-x: auto; border: 1px solid var(--rule); }
+    .setup-table table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 14px; }
+    .setup-table th, .setup-table td { padding: 15px 16px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
+    .setup-table th { color: var(--accent); font: 700 11px var(--mono); letter-spacing: .07em; text-transform: uppercase; }
+    .setup-table td { color: var(--muted); }
+    .setup-table tr:last-child td { border-bottom: 0; }
+    .setup-table td:first-child { width: 18%; color: var(--ink); font-weight: 700; }
+    .setup-table td:nth-child(2) { width: 28%; }
+    .setup-table td:nth-child(3) { width: 27%; }
+    .setup-table td:nth-child(4) { width: 27%; }
+    .required { color: var(--warm); font-weight: 750; }
+    footer { display: flex; justify-content: space-between; gap: 20px; padding: 22px 0 8px; color: var(--muted); font-size: 12px; }
+
+    @media (max-width: 760px) {
+      .shell { padding: 16px; }
+      header { grid-template-columns: 1fr; padding-top: 32px; }
+      .stamp { max-width: none; }
+      .provider-grid, .decision { grid-template-columns: 1fr; }
+      .provider { min-height: auto; }
+      .decision { gap: 26px; margin: 48px 0; }
+      .matrix { overflow-x: auto; }
+      .matrix-row { grid-template-columns: 150px repeat(3, 130px); min-width: 540px; }
+      .implementation { grid-template-columns: 1fr; gap: 10px; }
+      .guide { margin: 48px 0; }
+      .guide-header { grid-template-columns: 1fr; gap: 8px; }
+      footer { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">MoneyPrinterTurbo · Video materials</p>
+        <h1>Choose the route, not just the model.</h1>
+      </div>
+      <aside class="stamp">Provider decision sheet<br>September 2026</aside>
+    </header>
+
+    <p class="lead">OFox and WaveSpeed are ready-to-use sources in this checkout. fal has the broadest model marketplace, but needs a small provider adapter before it can produce clips through MoneyPrinterTurbo.</p>
+
+    <section class="provider-grid" aria-label="Provider summaries">
+      <article class="provider">
+        <div class="provider-name"><h2>OFox</h2><span>Built in</span></div>
+        <p class="thesis">One configured API for Seedance, Wan, and other OFox-routed video models.</p>
+        <dl>
+          <dt>Default model</dt><dd>Seedance 2.0 Fast</dd>
+          <dt>Flow</dt><dd>Submit video job → poll → download MP4</dd>
+          <dt>Controls in repo</dt><dd>Model, resolution, duration, vendor pinning, timeout</dd>
+          <dt>Credential</dt><dd>One OFox API key</dd>
+        </dl>
+        <p class="fit">Choose it for a ready-made multi-model backend.</p>
+      </article>
+
+      <article class="provider featured">
+        <div class="provider-name"><h2>WaveSpeed</h2><span>Built in</span></div>
+        <p class="thesis">A direct keyword-to-video path with a configurable text-to-video model ID.</p>
+        <dl>
+          <dt>Default model</dt><dd>Seedance 2.0 Fast text-to-video</dd>
+          <dt>Flow</dt><dd>Submit prediction → poll result → download MP4</dd>
+          <dt>Controls in repo</dt><dd>Model, duration bounds, API-key rotation</dd>
+          <dt>Credential</dt><dd>One or more WaveSpeed API keys</dd>
+        </dl>
+        <p class="fit">Choose it for the shortest path from script keywords to clips.</p>
+      </article>
+
+      <article class="provider">
+        <div class="provider-name"><h2>fal</h2><span>Adapter needed</span></div>
+        <p class="thesis">One API surface for a broad, frequently changing catalog of text-to-video and image-to-video models.</p>
+        <dl>
+          <dt>Model selection</dt><dd>Endpoint ID, such as a Kling, Wan, Pika, Vidu, or Seedance route</dd>
+          <dt>Flow</dt><dd>Queued job or subscribe helper → result video URL</dd>
+          <dt>Required addition</dt><dd>Provider source, settings UI, schema profiles, polling and download logic</dd>
+          <dt>Credential</dt><dd><code>FAL_KEY</code></dd>
+        </dl>
+        <p class="fit">Choose it when catalog flexibility outweighs a small integration effort.</p>
+      </article>
+    </section>
+
+    <section class="decision" aria-labelledby="matrix-title">
+      <div>
+        <p class="kicker">Decision matrix</p>
+        <h2 id="matrix-title">The practical difference</h2>
+        <p>The winner depends on whether “start now” or “change models often” matters more to your workflow.</p>
+      </div>
+      <div class="matrix" role="table" aria-label="Video provider comparison">
+        <div class="matrix-row header" role="row"><span role="columnheader">Question</span><span role="columnheader">OFox</span><span role="columnheader">WaveSpeed</span><span role="columnheader">fal</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Works from current WebUI</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="limited">No</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Text-to-video</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="yes">Yes, per model</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Image-to-video</span><span>Model dependent</span><span>Model dependent</span><span class="yes">Strong catalog</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Single provider key</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="yes">Yes</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Switch models without code change</span><span class="yes">Within OFox catalog</span><span class="yes">Via model ID</span><span>Endpoint ID changes; schema may differ</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Best first move</span><span>Turn on OFox</span><span>Turn on WaveSpeed</span><span>Implement a focused adapter</span></div>
+      </div>
+    </section>
+
+    <section class="implementation">
+      <h2>If you choose fal</h2>
+      <p>Add a <code>fal</code> video source alongside the existing providers, keep <code>FAL_KEY</code> server-side, and begin with one model profile—its endpoint ID plus validated duration, resolution, and input fields. fal’s queue is compatible with the project’s submit → poll → download pattern; the variable part is each model’s input schema.</p>
+    </section>
+
+    <section class="guide" aria-labelledby="setup-title">
+      <div class="guide-header">
+        <div>
+          <p class="kicker">Complete user setup</p>
+          <h2 id="setup-title">What to enter for every feature.</h2>
+        </div>
+        <p>Configure services in the WebUI settings panel or in your private <code>config.toml</code>. The app creates that file from <code>config.example.toml</code> on first run. Keep real credentials out of Git.</p>
+      </div>
+
+      <div class="setup-note">
+        <h3>How configuration is organized</h3>
+        <p>Server fields such as <code>listen_host</code> live at the top of <code>config.toml</code>. Most product choices live in <code>[app]</code>. A provider with its own settings uses a named section: for example <code>[azure]</code>, <code>[elevenlabs]</code>, or <code>[whisper]</code>. The WebUI writes to the same config locations.</p>
+      </div>
+
+      <pre class="quick-config"><code># Minimal local starting point — put real credentials only in config.toml
+[app]
+llm_provider = "moonshot"
+moonshot_api_key = "paste-your-LLM-key-here"
+video_source = "local"       # Or "pexels" once a Pexels key is configured
+subtitle_provider = "edge"   # Edge TTS timestamps; no API key needed
+
+# Keep empty when only using localhost; set a strong value before network exposure
+api_key = ""</code></pre>
+
+      <div class="setup-table">
+        <table>
+          <thead><tr><th>Feature</th><th>How it works</th><th>What you enter</th><th>Config fields / credentials</th></tr></thead>
+          <tbody>
+            <tr><td>Script generation</td><td>An LLM turns your topic and optional instructions into a video script.</td><td>Topic, language, paragraph count, optional script prompt, optional system prompt.</td><td><span class="required">Required:</span> choose <code>llm_provider</code> and add the matching provider <code>_api_key</code>. Set its <code>_base_url</code> and <code>_model_name</code> only when you need an override.</td></tr>
+            <tr><td>Custom script</td><td>Your supplied copy replaces LLM script creation and drives narration, visuals, and captions.</td><td>Paste the complete script.</td><td>No additional key. An LLM key is still required when asking the app to create visual terms or social metadata.</td></tr>
+            <tr><td>Visual terms</td><td>An LLM converts the script into search or scene terms. Scene matching preserves narrative order.</td><td>Optional custom terms; toggle scene/script matching when visuals should follow the narration.</td><td>LLM configuration above. Set <code>match_materials_to_script = true</code> as the default if you always want ordered matching.</td></tr>
+            <tr><td>Local video or images</td><td>Uses uploads rather than downloading or generating material.</td><td>Select Local; upload images/video; choose fit mode, order, duration, and speed.</td><td>No provider key. Optional <code>material_directory</code> changes where uploaded/downloaded material is stored.</td></tr>
+            <tr><td>Stock footage</td><td>Searches the selected provider with visual terms, then downloads source clips.</td><td>Select Pexels, Pixabay, or Coverr; provide terms or let the app generate them.</td><td><span class="required">Required:</span> set <code>video_source</code> and add the matching key list: <code>pexels_api_keys</code>, <code>pixabay_api_keys</code>, or <code>coverr_api_keys</code>.</td></tr>
+            <tr><td>WaveSpeed video</td><td>Creates a fresh text-to-video clip per visual term, polls the result, then downloads it.</td><td>Choose WaveSpeed; supply/approve visual terms, duration, and aspect ratio.</td><td><span class="required">Required:</span> <code>wavespeed_api_keys</code>. Optional controls: <code>wavespeed_text_to_video_model</code>, <code>wavespeed_min_duration</code>, <code>wavespeed_max_duration</code>.</td></tr>
+            <tr><td>OFox video</td><td>Uses one OFox account to submit/poll text-to-video jobs for the chosen catalog model.</td><td>Choose OFox; enter terms, duration, aspect ratio, resolution, and provider selection.</td><td><span class="required">Required:</span> <code>ofox_api_key</code>. Optional: <code>ofox_text_to_video_model</code>, <code>ofox_resolution</code>, <code>ofox_provider</code>, duration/polling fields.</td></tr>
+            <tr><td>VolcEngine or Metaso video</td><td>Submits asynchronous text-to-video jobs and composes their returned clips.</td><td>Choose the provider; give terms, duration, aspect ratio, resolution, and accept charge confirmation when shown.</td><td><span class="required">Required:</span> <code>volcengine_seedance_api_key</code> or <code>metaso_minimax_api_key</code>. Configure their optional model, resolution, duration, and timeout values only when required.</td></tr>
+            <tr><td>fal video</td><td>Would use fal endpoint/model profiles to submit a queued job and download its result.</td><td>Not available in the current WebUI or API.</td><td><span class="required">Important:</span> <code>FAL_KEY</code> alone is not enough. The repository does not yet read it; add a fal provider adapter, model profile validation, UI selection, and result handling first.</td></tr>
+            <tr><td>AI image material</td><td>Generates one image per term from an OpenAI-compatible endpoint, then animates each image into a clip.</td><td>Choose the image source; provide terms and, optionally, a prompt template or size.</td><td><span class="required">Required:</span> <code>openai_image_base_url</code> and <code>openai_image_model</code>. Add <code>openai_image_api_keys</code> only if the endpoint requires authentication.</td></tr>
+            <tr><td>Edge TTS voice</td><td>Uses built-in Edge TTS and can reuse its timestamps for fast captions.</td><td>Select voice; set voice rate and volume.</td><td>No API key. Optional: <code>edge_tts_timeout</code>.</td></tr>
+            <tr><td>Cloud or self-hosted TTS</td><td>Converts the script to narration through the selected provider.</td><td>Select provider and voice; enter a voice/model ID where the provider requires it.</td><td><span class="required">Required:</span> provider credential: <code>[azure] speech_key</code> + <code>speech_region</code>; <code>[siliconflow] api_key</code>; <code>gemini_api_key</code>; <code>mimo_api_key</code>; <code>[minimax_tts] api_key</code>; <code>[elevenlabs] api_key</code>; <code>[fish_audio] api_key</code>; or <code>[chatterbox] base_url</code> for a running local service.</td></tr>
+            <tr><td>Subtitles</td><td>Creates timed captions from TTS timestamps or transcribes audio with Whisper.</td><td>Enable captions; set font, size, position, colors, outline, background, display mode, and animation.</td><td><code>subtitle_provider = "edge"</code> needs no key. For transcription set <code>subtitle_provider = "whisper"</code>; optionally tune <code>[whisper] model_size</code>, <code>device</code>, <code>compute_type</code>, <code>initial_prompt</code>.</td></tr>
+            <tr><td>Background music</td><td>Mixes a chosen, random, or generated track under the narration.</td><td>Select random/local/generated music; upload a file or enter a music prompt; set music volume.</td><td>Random/local requires no key. Sonilo uses <code>sonilo_api_key</code>; ElevenLabs music reuses <code>[elevenlabs] api_key</code>.</td></tr>
+            <tr><td>Rendering</td><td>Fits, orders, transitions, captions, mixes, and encodes materials into one or more MP4s.</td><td>Set aspect ratio, fit mode, duration/speed, concat mode, transition, and output count.</td><td>No provider key. FFmpeg must be available. Optional: <code>ffmpeg_path</code> and <code>video_codec</code>.</td></tr>
+            <tr><td>Social publishing</td><td>Queues publishing after a successful video job.</td><td>Enable publishing; choose TikTok, Instagram, YouTube; choose YouTube privacy if needed.</td><td><span class="required">Required:</span> <code>upload_post_enabled = true</code>, <code>upload_post_api_key</code>, <code>upload_post_username</code>, <code>upload_post_platforms</code>. Set <code>upload_post_auto_upload</code> for automatic posting.</td></tr>
+            <tr><td>API and task runtime</td><td>Runs asynchronous jobs and exposes task status and artifacts through the REST API.</td><td>For external access, decide the host, API key, endpoint URL, and optional Redis server details.</td><td>Keep <code>listen_host = "127.0.0.1"</code> for local-only use. For network access set strong <code>[app] api_key</code> and use <code>x-api-key</code>. Redis uses <code>enable_redis</code>, host, port, DB, and password.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>Repository facts reflect this checkout’s <code>config.example.toml</code> and video services. The full guide is now included above.</span>
+      <span>fal capabilities reflect its public model API documentation.</span>
+    </footer>
+  </main>
+</body>
+</html>

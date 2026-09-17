@@ -457,6 +457,34 @@ def _load_toml_config(config_path: str):
         raise
 
 
+def _restrict_config_file_permissions(path: str) -> None:
+    """Keep locally stored provider credentials readable only by their owner."""
+    if os.name == "posix":
+        os.chmod(path, 0o600)
+
+
+def _create_private_config(example_file: str) -> None:
+    """Copy the example configuration without exposing it through the umask."""
+    fd = os.open(
+        config_file,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+        0o600,
+    )
+    try:
+        with os.fdopen(fd, mode="wb") as destination, open(
+            example_file, mode="rb"
+        ) as source:
+            shutil.copyfileobj(source, destination)
+            destination.flush()
+            os.fsync(destination.fileno())
+    except Exception:
+        try:
+            os.unlink(config_file)
+        except OSError:
+            pass
+        raise
+
+
 def load_config():
     # fix: IsADirectoryError: [Errno 21] Is a directory: '/MoneyPrinterTurbo/config.toml'
     if os.path.isdir(config_file):
@@ -465,8 +493,15 @@ def load_config():
     if not os.path.isfile(config_file):
         example_file = f"{root_dir}/config.example.toml"
         if os.path.isfile(example_file):
-            shutil.copyfile(example_file, config_file)
-            logger.info("copy config.example.toml to config.toml")
+            try:
+                _create_private_config(example_file)
+                logger.info("copy config.example.toml to config.toml")
+            except FileExistsError:
+                # Another process created the config between the existence check
+                # and the secure copy. Load and protect that completed file.
+                pass
+
+    _restrict_config_file_permissions(config_file)
 
     logger.info(f"load config from file: {config_file}")
 
@@ -490,6 +525,9 @@ def save_config():
     主要用于避免多标签页或快速 rerun 时损坏配置文件。
     """
     with _config_save_lock:
+        if os.path.isfile(config_file):
+            _restrict_config_file_permissions(config_file)
+
         config_to_save = dict(_cfg)
         config_to_save["app"] = dict(app)
         config_to_save["azure"] = dict(azure)
@@ -566,7 +604,7 @@ ui = _SynchronizedConfig(
 hostname = socket.gethostname()
 
 log_level = _cfg.get("log_level", "DEBUG")
-listen_host = _cfg.get("listen_host", "0.0.0.0")
+listen_host = _cfg.get("listen_host", "127.0.0.1")
 listen_port = _cfg.get("listen_port", 8080)
 project_name = _cfg.get("project_name", "MoneyPrinterTurbo")
 project_description = _cfg.get(
@@ -575,6 +613,29 @@ project_description = _cfg.get(
 )
 project_version = _cfg.get("project_version", __version__)
 reload_debug = False
+
+
+def _is_loopback_listen_host(host: object) -> bool:
+    """Return whether a host value restricts the API server to this machine."""
+    if not isinstance(host, str):
+        return False
+
+    normalized_host = host.strip().lower()
+    if normalized_host == "localhost":
+        return True
+    return normalized_host in {"127.0.0.1", "::1"}
+
+
+def validate_api_server_security() -> None:
+    """Reject unauthenticated API servers that would accept network traffic."""
+    api_key = app.get("api_key", "")
+    if _is_loopback_listen_host(listen_host) or str(api_key or "").strip():
+        return
+
+    raise RuntimeError(
+        "A non-loopback listen_host requires app.api_key. "
+        "Set a strong API key or bind the API to 127.0.0.1."
+    )
 
 app["redis_host"] = os.getenv(
     "MPT_APP_REDIS_HOST",

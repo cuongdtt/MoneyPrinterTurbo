@@ -57,6 +57,8 @@ SubtitleDisplayMode = Literal["sentence", "word_by_word"]
 SubtitleAnimation = Literal["none", "pop_spring"]
 _SUBTITLE_DISPLAY_MODES = ("sentence", "word_by_word")
 _SUBTITLE_ANIMATIONS = ("none", "pop_spring")
+MAX_VIDEO_COUNT = 5
+MAX_RENDER_THREADS = 8
 
 
 def _get_valid_ui_choice(key: str, allowed_values: tuple[str, ...], default: str) -> str:
@@ -113,7 +115,7 @@ class VideoParams(BaseModel):
     video_clip_duration: int = Field(default=5, ge=1)
     video_clip_speed: Optional[float] = 1.0
     match_materials_to_script: bool = False
-    video_count: int = Field(default=1, ge=1)
+    video_count: int = Field(default=1, ge=1, le=MAX_VIDEO_COUNT)
 
     video_source: Optional[str] = "pexels"
     video_materials: Optional[List[MaterialInfo]] = (
@@ -155,7 +157,7 @@ class VideoParams(BaseModel):
     font_size: int = 60
     stroke_color: Optional[str] = "#000000"
     stroke_width: float = 1.5
-    n_threads: Optional[int] = 2
+    n_threads: Optional[int] = Field(default=2, ge=1, le=MAX_RENDER_THREADS)
     paragraph_number: int = Field(default=1, ge=1, le=10)
     video_script_prompt: str = Field(default="", max_length=2000)
     custom_system_prompt: str = Field(default="", max_length=8000)

@@ -46,11 +46,21 @@ class TestVideoParams(unittest.TestCase):
 
     def test_accepts_positive_generation_counts(self):
         params = VideoParams(
-            video_subject="Coffee", video_clip_duration=1, video_count=1
+            video_subject="Coffee",
+            video_clip_duration=1,
+            video_count=5,
+            n_threads=8,
         )
 
         self.assertEqual(params.video_clip_duration, 1)
-        self.assertEqual(params.video_count, 1)
+        self.assertEqual(params.video_count, 5)
+        self.assertEqual(params.n_threads, 8)
+
+    def test_rejects_generation_counts_above_resource_limits(self):
+        for field_name, value in (("video_count", 6), ("n_threads", 9)):
+            with self.subTest(field_name=field_name, value=value):
+                with self.assertRaises(ValidationError):
+                    VideoParams(video_subject="Coffee", **{field_name: value})
 
     def test_subtitle_modes_accept_only_supported_api_values(self):
         """新增字幕参数必须拒绝拼写错误，避免请求成功后静默降级。"""

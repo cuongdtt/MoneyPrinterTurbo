@@ -1,4 +1,6 @@
 import errno
+import os
+import stat
 import threading
 import time
 import tomllib
@@ -34,7 +36,7 @@ class TestConfigPersistence:
         example_config = self._load_example_config()
         app_config = example_config["app"]
 
-        assert example_config["listen_host"] == "0.0.0.0"
+        assert example_config["listen_host"] == "127.0.0.1"
         assert example_config["listen_port"] == 8080
         assert example_config["log_level"] == "DEBUG"
         assert app_config["video_source"] in {
@@ -112,6 +114,39 @@ class TestConfigPersistence:
             error_message = str(error_mock.call_args.args[0])
             assert str(config_path) in error_message
             assert "TomlDecodeError" in error_message
+
+    def test_load_config_creates_and_enforces_private_permissions(self):
+        if os.name != "posix":
+            self.skipTest("POSIX permissions are not available")
+
+        with TemporaryDirectory() as temp_dir:
+            root_path = Path(temp_dir)
+            example_path = root_path / "config.example.toml"
+            config_path = root_path / "config.toml"
+            example_path.write_text("[app]\napi_key = \"secret\"\n", encoding="utf-8")
+            example_path.chmod(0o644)
+
+            with (
+                patch.object(config, "root_dir", temp_dir),
+                patch.object(config, "config_file", str(config_path)),
+            ):
+                config.load_config()
+
+            assert stat.S_IMODE(config_path.stat().st_mode) == 0o600
+
+    def test_load_config_restricts_existing_permissions(self):
+        if os.name != "posix":
+            self.skipTest("POSIX permissions are not available")
+
+        with TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text("[app]\napi_key = \"secret\"\n", encoding="utf-8")
+            config_path.chmod(0o644)
+
+            with patch.object(config, "config_file", str(config_path)):
+                config.load_config()
+
+            assert stat.S_IMODE(config_path.stat().st_mode) == 0o600
 
     def test_kimi_uses_current_default_model(self):
         """Kimi 未配置模型覆盖值时，应使用当前发布版本的默认模型。"""

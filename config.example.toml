@@ -7,16 +7,17 @@
 # =============================================================================
 # Log level: DEBUG, INFO, WARNING, or ERROR.
 log_level = "DEBUG"
-# Use 127.0.0.1 for local-only access. 0.0.0.0 listens on all network interfaces.
-listen_host = "0.0.0.0"
+# Use 127.0.0.1 for local-only access. Any non-loopback address requires a
+# non-empty [app].api_key to prevent unauthenticated network access.
+listen_host = "127.0.0.1"
 listen_port = 8080
 
 [app]
 
 # Optional protection for API routes and generated files under /tasks.
-# Leave empty for local backward-compatible access. When configured, clients
-# must send the same value in the x-api-key request header. Keep real keys only
-# in config.toml and never commit them.
+# Leave empty only when listen_host is 127.0.0.1 or localhost. Network-facing
+# deployments must set a strong value; clients then send it in x-api-key. Keep
+# real keys only in config.toml and never commit them.
 # API 路由和 /tasks 生成文件的可选保护。留空时保持本地免认证行为；
 # 配置后客户端必须通过 x-api-key 请求头传入同一个值。
 # Task artifact requests also require this header; a browser address bar cannot

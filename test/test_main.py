@@ -28,3 +28,24 @@ def test_main_starts_uvicorn_with_runtime_config():
         reload=True,
         log_level="warning",
     )
+
+
+def test_non_loopback_api_requires_an_api_key():
+    with (
+        patch.object(config, "listen_host", "0.0.0.0"),
+        patch.dict(config.app, {"api_key": ""}),
+    ):
+        try:
+            config.validate_api_server_security()
+        except RuntimeError as exc:
+            assert "requires app.api_key" in str(exc)
+        else:
+            raise AssertionError("expected an insecure API configuration to fail")
+
+
+def test_loopback_api_allows_empty_api_key_for_local_use():
+    with (
+        patch.object(config, "listen_host", "127.0.0.1"),
+        patch.dict(config.app, {"api_key": ""}),
+    ):
+        config.validate_api_server_security()

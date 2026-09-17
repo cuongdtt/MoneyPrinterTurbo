@@ -171,6 +171,7 @@ def get_application() -> FastAPI:
        FastAPI: Application object instance.
 
     """
+    config.validate_api_server_security()
     instance = FastAPI(
         title=config.project_name,
         description=config.project_description,

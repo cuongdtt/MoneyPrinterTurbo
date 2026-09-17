@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="A high-level guide to MoneyPrinterTurbo's short-video creation capabilities."
+    />
+    <title>MoneyPrinterTurbo · Capabilities</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --night: #10151d;
+        --panel: #18212c;
+        --line: #344352;
+        --paper: #eef3f6;
+        --muted: #a8b5c0;
+        --cyan: #67d7df;
+        --coral: #ff9d7e;
+        --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { scroll-behavior: smooth; }
+
+      body {
+        margin: 0;
+        background: var(--night);
+        color: var(--paper);
+        font-family: var(--sans);
+        line-height: 1.6;
+      }
+
+      a { color: var(--cyan); }
+      a:hover { color: var(--coral); }
+
+      .shell { max-width: 1180px; margin: 0 auto; padding: 32px 28px 64px; }
+
+      header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 24px;
+        align-items: end;
+        padding: 36px 0 40px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow, .label {
+        margin: 0 0 10px;
+        color: var(--cyan);
+        font: 700 0.75rem/1.2 var(--mono);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+      }
+
+      h1, h2, h3 { line-height: 1.12; }
+      h1 { max-width: 760px; margin: 0; font-size: clamp(2.1rem, 6vw, 4.5rem); letter-spacing: -0.06em; }
+      h2 { margin: 0; font-size: clamp(1.45rem, 3vw, 2.25rem); letter-spacing: -0.035em; }
+      h3 { margin: 0; font-size: 1.05rem; }
+
+      .deck { max-width: 660px; margin: 22px 0 0; color: var(--muted); font-size: 1.08rem; }
+      .badge { padding: 8px 11px; border: 1px solid var(--line); color: var(--muted); font: 0.72rem var(--mono); white-space: nowrap; }
+      .related-link { display: inline-block; margin-top: 13px; color: var(--paper); font: 700 0.8rem/1.25 var(--sans); text-decoration: none; }
+      .related-link span { color: var(--coral); }
+      .related-link:hover { color: var(--cyan); }
+
+      .pipeline {
+        margin: 42px 0 52px;
+        padding: 26px;
+        background: var(--panel);
+        border-left: 4px solid var(--coral);
+      }
+
+      .pipeline-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .step { min-height: 126px; padding: 15px; border: 1px solid var(--line); background: var(--night); }
+      .step-number { display: block; margin-bottom: 12px; color: var(--coral); font: 0.75rem var(--mono); }
+      .step p { margin: 7px 0 0; color: var(--muted); font-size: 0.9rem; line-height: 1.4; }
+
+      main { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 54px; }
+      nav { position: sticky; top: 24px; align-self: start; padding-top: 52px; }
+      nav a { display: block; padding: 7px 0; color: var(--muted); font-size: 0.88rem; text-decoration: none; }
+      nav a:hover { color: var(--paper); }
+      .content { padding-top: 50px; }
+      section { padding: 0 0 54px; }
+      .section-intro { max-width: 720px; margin: 12px 0 28px; color: var(--muted); }
+
+      .capabilities { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; border: 1px solid var(--line); background: var(--line); }
+      article { padding: 24px; background: var(--night); }
+      article p { margin: 10px 0 0; color: var(--muted); }
+      ul { margin: 16px 0 0; padding: 0; list-style: none; }
+      li { position: relative; margin: 8px 0; padding-left: 17px; color: var(--muted); }
+      li::before { position: absolute; left: 0; color: var(--cyan); content: "›"; }
+      code { color: var(--paper); font-family: var(--mono); font-size: 0.9em; }
+
+      .operational { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px; }
+      .note { padding: 24px; border: 1px solid var(--line); }
+      .note h3 { color: var(--cyan); }
+      .note p { color: var(--muted); }
+      .code-list { margin-top: 0; font-family: var(--mono); font-size: 0.86rem; }
+      .code-list li { padding-bottom: 10px; }
+
+      .setup-callout { margin: 26px 0; padding: 22px 24px; background: var(--panel); border-left: 4px solid var(--cyan); }
+      .setup-callout p { margin: 8px 0 0; color: var(--muted); }
+      .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
+      table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 0.9rem; }
+      th, td { padding: 15px 16px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+      th { color: var(--cyan); font: 700 0.74rem var(--mono); letter-spacing: 0.07em; text-transform: uppercase; }
+      td { color: var(--muted); }
+      tr:last-child td { border-bottom: 0; }
+      pre { overflow-x: auto; margin: 16px 0 0; padding: 18px; border: 1px solid var(--line); background: #0b1016; color: var(--paper); font: 0.84rem/1.55 var(--mono); }
+      .required { color: var(--coral); font-weight: 700; }
+
+      footer { padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+
+      @media (max-width: 820px) {
+        .shell { padding: 20px 18px 40px; }
+        header, main { display: block; }
+        .badge { display: inline-block; margin-top: 20px; }
+        nav { position: static; display: flex; flex-wrap: wrap; gap: 0 16px; padding: 24px 0 0; }
+        .content { padding-top: 38px; }
+        .pipeline-grid, .capabilities, .operational { grid-template-columns: 1fr; }
+      }
+
+      @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <div>
+          <p class="eyebrow">Product capabilities / repository guide</p>
+          <h1>From a prompt to a publishable short video.</h1>
+          <p class="deck">MoneyPrinterTurbo combines writing, voice, visuals, captions, music, and rendering into a configurable short-form video production pipeline.</p>
+        </div>
+        <div>
+          <div class="badge">HIGH-LEVEL · CURRENT REPOSITORY</div>
+          <a class="related-link" href="../ofx-wavespeed-fal-comparison.html"><span>↗</span> Compare OFox, WaveSpeed &amp; fal</a>
+        </div>
+      </header>
+
+      <aside class="pipeline" aria-labelledby="pipeline-title">
+        <p class="label">The production path</p>
+        <h2 id="pipeline-title">One pipeline, with editable stages.</h2>
+        <div class="pipeline-grid">
+          <div class="step"><span class="step-number">01 / BRIEF</span><h3>Topic or script</h3><p>Start from an idea, keywords, or supplied copy.</p></div>
+          <div class="step"><span class="step-number">02 / WORDS</span><h3>Write &amp; plan</h3><p>Draft, refine, and derive scene-aligned visual terms.</p></div>
+          <div class="step"><span class="step-number">03 / MEDIA</span><h3>Voice &amp; visuals</h3><p>Synthesize speech and select, upload, or generate footage.</p></div>
+          <div class="step"><span class="step-number">04 / FINISH</span><h3>Caption &amp; mix</h3><p>Time subtitles, add music, fit clips, and render variants.</p></div>
+          <div class="step"><span class="step-number">05 / DELIVER</span><h3>Export &amp; post</h3><p>Retrieve MP4s or optionally cross-post configured destinations.</p></div>
+        </div>
+      </aside>
+
+      <main>
+        <nav aria-label="Page sections">
+          <a href="#create">Create</a>
+          <a href="#script">Script &amp; planning</a>
+          <a href="#visuals">Visuals</a>
+          <a href="#sound">Sound &amp; captions</a>
+          <a href="#delivery">Delivery</a>
+          <a href="#operations">Operations</a>
+          <a href="#configuration">Setup &amp; keys</a>
+        </nav>
+
+        <div class="content">
+          <section id="create">
+            <p class="label">01 / Create</p>
+            <h2>Choose the interface that fits the job.</h2>
+            <p class="section-intro">The same underlying pipeline is available for interactive work, repeatable automation, and agent-driven execution.</p>
+            <div class="capabilities">
+              <article><h3>WebUI</h3><p>Guided authoring, previews, settings, task history, generated-asset management, and onboarding.</p></article>
+              <article><h3>CLI</h3><p>A command-line entry point for local, repeatable, and scripted runs.</p></article>
+              <article><h3>REST API</h3><p>Queue-based creation for integrations, including complete video, audio-only, and subtitle-only jobs.</p></article>
+              <article><h3>AI agent workflow</h3><p>Included skill instructions let an agent install, configure, and run the workflow from a natural-language request.</p></article>
+            </div>
+          </section>
+
+          <section id="script">
+            <p class="label">02 / Script &amp; planning</p>
+            <h2>Start with an idea—or take complete control of the copy.</h2>
+            <div class="capabilities">
+              <article><h3>Multilingual scripting</h3><ul><li>Generate a script from a topic.</li><li>Supply or revise the full script yourself.</li><li>Set language, paragraph count, and custom prompts.</li></ul></article>
+              <article><h3>Scene direction</h3><ul><li>Extract visual search terms from a script.</li><li>Align terms to script order for scene-by-scene matching.</li><li>Generate social-post metadata for a selected platform.</li></ul></article>
+            </div>
+          </section>
+
+          <section id="visuals">
+            <p class="label">03 / Visuals</p>
+            <h2>Bring your own footage, find it, or generate it.</h2>
+            <div class="capabilities">
+              <article><h3>Material sources</h3><ul><li>Upload local images and video clips.</li><li>Search Pexels, Pixabay, and Coverr stock footage.</li><li>Use OpenAI-compatible image generation to create animated material.</li></ul></article>
+              <article><h3>AI video sources</h3><ul><li>Metaso MiniMax and Shengsuan Cloud.</li><li>VolcEngine Ark Seedance and WaveSpeed.</li><li>OFox access to compatible text-to-video models.</li></ul></article>
+              <article><h3>Editorial controls</h3><ul><li>Set clip duration and speed.</li><li>Use random or sequential concatenation.</li><li>Choose transitions and <code>cover</code> or <code>contain</code> fitting.</li></ul></article>
+              <article><h3>Visual continuity</h3><ul><li>Match materials to the script sequence.</li><li>Preserve source material order when needed.</li><li>Generate multiple output variants from one request.</li></ul></article>
+            </div>
+          </section>
+
+          <section id="sound">
+            <p class="label">04 / Sound &amp; captions</p>
+            <h2>Design the audio track and the words on screen.</h2>
+            <div class="capabilities">
+              <article><h3>Voiceover</h3><ul><li>Use TTS, a custom uploaded audio file, or no voiceover.</li><li>Preview voices and tune rate and volume.</li><li>Use Edge TTS, Azure, SiliconFlow, Gemini, MiMo, MiniMax, ElevenLabs, Chatterbox, Fish Audio, and compatible providers.</li></ul></article>
+              <article><h3>Captions</h3><ul><li>Use quick TTS timestamp timing or local <code>faster-whisper</code> transcription.</li><li>Style font, size, colors, outline, background, and position.</li><li>Use sentence or word-by-word display and a pop-spring animation.</li></ul></article>
+              <article><h3>Music</h3><ul><li>Select random or local music.</li><li>Generate music with Sonilo or ElevenLabs.</li><li>Control music and voice volumes independently.</li></ul></article>
+            </div>
+          </section>
+
+          <section id="delivery">
+            <p class="label">05 / Delivery</p>
+            <h2>Render for the platform, then retrieve or distribute.</h2>
+            <div class="capabilities">
+              <article><h3>Output formats</h3><ul><li>Landscape <code>16:9</code> at 1920×1080.</li><li>Portrait <code>9:16</code> at 1080×1920.</li><li>Square <code>1:1</code> at 1080×1080.</li></ul></article>
+              <article><h3>Artifact handling</h3><ul><li>Stream or download completed task files.</li><li>Review task history and restore prior settings.</li><li>Safely delete completed task output.</li></ul></article>
+              <article><h3>Optional publishing</h3><ul><li>Cross-post to TikTok, Instagram, YouTube, and Facebook Reels.</li><li>Publishing occurs only when the integration and platform credentials are configured.</li></ul></article>
+            </div>
+          </section>
+
+          <section id="operations">
+            <p class="label">Operational model</p>
+            <h2>Asynchronous tasks with recoverable, inspectable output.</h2>
+            <div class="operational">
+              <div class="note"><h3>API surface</h3><p>Core paths include <code>/api/v1/videos</code>, <code>/api/v1/audio</code>, <code>/api/v1/subtitle</code>, task lookup, material and music upload/listing, streaming/download, and LLM utilities for scripts, terms, and social metadata.</p><p>When <code>app.api_key</code> is configured, the API is authenticated.</p></div>
+              <div class="note"><h3>Task lifecycle</h3><p>Jobs run through a task manager that persists progress, results, and structured failure information. In-memory and Redis-backed managers support local use and queued deployment patterns.</p></div>
+            </div>
+          </section>
+
+          <section id="configuration">
+            <p class="label">Setup &amp; keys</p>
+            <h2>What you need to enter for each feature.</h2>
+            <p class="section-intro">Use the WebUI settings panel for guided entry, or make the same changes in a private <code>config.toml</code>. The application creates this file from <code>config.example.toml</code> on first run. Never commit <code>config.toml</code> or share its keys.</p>
+
+            <div class="setup-callout">
+              <h3>Configuration rule of thumb</h3>
+              <p><strong>Top-level fields</strong> control the server. Most product settings live under <code>[app]</code>. Credentials for a specific voice provider live in its named section, such as <code>[azure]</code> or <code>[elevenlabs]</code>. The WebUI stores values in these same locations.</p>
+            </div>
+
+            <h3>Minimum local configuration</h3>
+            <p class="section-intro">For a first video without paid media services, choose a script model, use local material or add stock-footage access, keep Edge TTS, and select the desired video settings in the WebUI.</p>
+            <pre><code># config.toml — real key stays private
+[app]
+llm_provider = "moonshot"
+moonshot_api_key = "paste-your-LLM-key-here"
+video_source = "local"       # Or "pexels" after adding a Pexels key
+subtitle_provider = "edge"   # No key required
+
+# Server remains local-only by default
+api_key = ""</code></pre>
+
+            <h3 style="margin-top: 34px">Feature setup matrix</h3>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Feature</th><th>How it works</th><th>Enter in the WebUI / request</th><th>Required config or key</th></tr></thead>
+                <tbody>
+                  <tr><td>Script generation</td><td>An LLM turns a topic and optional prompt into a script.</td><td>Topic, language, paragraph count, optional script prompt and system prompt.</td><td><span class="required">Required:</span> choose <code>llm_provider</code>; enter that provider's <code>_api_key</code>. Optionally set its <code>_base_url</code> and <code>_model_name</code>.</td></tr>
+                  <tr><td>Bring your own script</td><td>Skips LLM script creation; the supplied text drives narration, terms, and captions.</td><td>Paste the complete video script.</td><td>No extra key. An LLM key is only needed if you also ask it to create terms or social metadata.</td></tr>
+                  <tr><td>Stock footage</td><td>Searches a provider using generated or supplied visual terms.</td><td>Choose Pexels, Pixabay, or Coverr; give terms or let the app generate them.</td><td><span class="required">Required:</span> set <code>video_source</code> and its matching list: <code>pexels_api_keys</code>, <code>pixabay_api_keys</code>, or <code>coverr_api_keys</code>.</td></tr>
+                  <tr><td>Local material</td><td>Uses uploaded images/video clips instead of remote search or generation.</td><td>Choose Local and upload material. Set clip order and fit mode if needed.</td><td>No provider key. Optional: <code>material_directory</code> changes where material is stored.</td></tr>
+                  <tr><td>WaveSpeed video</td><td>Generates a new clip from each visual term.</td><td>Choose WaveSpeed, confirm the billed generation, provide terms, duration, aspect ratio.</td><td><span class="required">Required:</span> <code>wavespeed_api_keys</code>. Optional model and duration limits: <code>wavespeed_text_to_video_model</code>, <code>wavespeed_min_duration</code>, <code>wavespeed_max_duration</code>.</td></tr>
+                  <tr><td>Seedance / OFox / Metaso video</td><td>Submits text-to-video jobs, polls the provider, then composes returned clips.</td><td>Choose the provider, enter visual terms, duration, aspect ratio, and any charge confirmation shown.</td><td><span class="required">Required:</span> one of <code>volcengine_seedance_api_key</code>, <code>ofox_api_key</code>, or <code>metaso_minimax_api_key</code>. Model, resolution, and polling fields are optional provider tuning.</td></tr>
+                  <tr><td>AI image material</td><td>Generates an image per visual term, then animates it into a clip.</td><td>Choose OpenAI-compatible image source; provide terms and optional prompt template.</td><td><span class="required">Required:</span> <code>openai_image_base_url</code> and <code>openai_image_model</code>; add <code>openai_image_api_keys</code> when the endpoint requires auth.</td></tr>
+                  <tr><td>Edge TTS voiceover</td><td>Uses the built-in Edge text-to-speech service and its timestamps for captions.</td><td>Select an Edge voice, then set voice rate and volume.</td><td>No API key. Optional timeout: <code>edge_tts_timeout</code>.</td></tr>
+                  <tr><td>Cloud / self-hosted TTS</td><td>Converts the script to narration through the selected TTS provider.</td><td>Select provider and voice; enter a voice ID if the provider requests one.</td><td><span class="required">Required:</span> provider credential—<code>[azure] speech_key</code> + <code>speech_region</code>; <code>[siliconflow] api_key</code>; <code>gemini_api_key</code>; <code>mimo_api_key</code>; <code>[minimax_tts] api_key</code>; <code>[elevenlabs] api_key</code>; <code>[fish_audio] api_key</code>; or <code>[chatterbox] base_url</code> for a running local server.</td></tr>
+                  <tr><td>Subtitles</td><td>Creates timed captions from TTS timestamps or transcription.</td><td>Toggle captions; select font, position, colors, background, display mode, and animation.</td><td><code>subtitle_provider = "edge"</code> needs no key. For transcription set <code>subtitle_provider = "whisper"</code> and optionally tune <code>[whisper] model_size</code>, <code>device</code>, <code>compute_type</code>, and <code>initial_prompt</code>.</td></tr>
+                  <tr><td>Background music</td><td>Mixes a local track, random bundled song, or generated music under the voiceover.</td><td>Select random/local/generated music, optionally upload a file or enter a music prompt; set music volume.</td><td>Local/random needs no key. Sonilo needs <code>sonilo_api_key</code>; ElevenLabs music reuses <code>[elevenlabs] api_key</code>.</td></tr>
+                  <tr><td>Video rendering</td><td>Fits, orders, transitions, captions, mixes, and encodes source material into MP4 files.</td><td>Aspect ratio, fit mode, clip duration/speed, concat mode, transition, output count.</td><td>No provider key. Optional: <code>video_codec</code> and <code>ffmpeg_path</code>. FFmpeg must be available.</td></tr>
+                  <tr><td>Social publishing</td><td>Queues cross-posting after a successful render.</td><td>Enable publishing, choose destinations, and choose YouTube privacy when applicable.</td><td><span class="required">Required:</span> set <code>upload_post_enabled = true</code>, <code>upload_post_api_key</code>, <code>upload_post_username</code>, and <code>upload_post_platforms</code>. Use <code>upload_post_auto_upload</code> to post automatically.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 style="margin-top: 34px">API and deployment inputs</h3>
+            <div class="operational">
+              <div class="note"><h3>Protect a network-facing API</h3><p>Keep <code>listen_host = "127.0.0.1"</code> for local-only use. If you expose the service beyond your machine, set a strong <code>[app] api_key</code> and send it from clients in the <code>x-api-key</code> header. Configure <code>endpoint</code> only when generated links need an external public base URL.</p></div>
+              <div class="note"><h3>Scale task handling</h3><p>For a single machine, keep <code>enable_redis = false</code>. For shared task state, enter private Redis details: <code>enable_redis</code>, <code>redis_host</code>, <code>redis_port</code>, <code>redis_db</code>, and <code>redis_password</code>. Adjust <code>max_concurrent_tasks</code> and <code>max_queued_tasks</code> to match available hardware.</p></div>
+            </div>
+          </section>
+
+          <section>
+            <p class="label">Codebase map</p>
+            <h2>Where each capability lives.</h2>
+            <ul class="code-list">
+              <li><code>webui/Main.py</code> — authoring, settings, previews, and task management</li>
+              <li><code>cli.py</code> — command-line entry point</li>
+              <li><code>app/controllers/v1/</code> — API endpoints</li>
+              <li><code>app/services/task.py</code> — task orchestration, batching, and cross-post scheduling</li>
+              <li><code>app/services/video.py</code> — rendering, fitting, captions, audio, and encoding</li>
+              <li><code>app/services/</code> — LLM, voice, material, music, subtitle, cache, and provider adapters</li>
+              <li><code>config.example.toml</code> — configuration and provider credentials</li>
+            </ul>
+          </section>
+        </div>
+      </main>
+
+      <footer>
+        This guide reflects capabilities wired into the repository. For setup details, see <a href="../../README-en.md">README-en.md</a> and <a href="../../config.example.toml">config.example.toml</a>.
+      </footer>
+    </div>
+  </body>
+</html>
