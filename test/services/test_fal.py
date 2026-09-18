@@ -25,23 +25,37 @@ def test_fal_key_uses_dedicated_config_then_environment():
 
 
 def test_fal_submits_polls_and_returns_video_with_request_id():
+    status_url = "https://queue.fal.run/fal-ai/kling-video/requests/req-123/status"
+    response_url = "https://queue.fal.run/fal-ai/kling-video/requests/req-123/response"
     with (
         patch.object(config, "app", {"fal_api_key": "private-key"}),
         patch.object(
             fal.requests,
             "post",
+            return_value=_response(
+                {
+                    "request_id": "req-123",
+                    "status_url": status_url,
+                    "response_url": response_url,
+                },
+                202,
+            ),
+        ) as post,
+        patch.object(
+            fal.requests,
+            "get",
             side_effect=[
-                _response({"request_id": "req-123"}, 202),
                 _response({"status": "IN_QUEUE"}),
                 _response({"status": "COMPLETED"}),
                 _response({"video": {"url": "https://v3.fal.media/video.mp4"}}),
             ],
-        ) as post,
+        ) as get,
         patch.object(fal.time, "sleep"),
     ):
         items = fal.generate_videos("  sunrise  ", 2, VideoAspect.portrait)
 
-    assert post.call_count == 4
+    post.assert_called_once()
+    assert get.call_count == 3
     assert post.call_args_list[0].args[0] == fal.QUEUE_URL
     assert post.call_args_list[0].kwargs["headers"]["Authorization"] == "Key private-key"
     assert post.call_args_list[0].kwargs["json"] == {
@@ -49,10 +63,9 @@ def test_fal_submits_polls_and_returns_video_with_request_id():
         "duration": "3",
         "aspect_ratio": "9:16",
     }
-    request_url = f"{fal.QUEUE_URL}/requests/req-123"
-    assert post.call_args_list[1].args[0] == f"{request_url}/status"
-    assert post.call_args_list[2].args[0] == f"{request_url}/status"
-    assert post.call_args_list[3].args[0] == request_url
+    assert get.call_args_list[0].args[0] == status_url
+    assert get.call_args_list[1].args[0] == status_url
+    assert get.call_args_list[2].args[0] == response_url
     assert items[0].provider == "fal"
     assert items[0].duration == 3
     assert items[0].source_info["asset_id"] == "req-123"
@@ -72,21 +85,136 @@ def test_fal_does_not_repeat_ambiguous_paid_submission():
     post.assert_called_once()
 
 
+def test_fal_rejects_queue_link_to_another_host():
+    with (
+        patch.object(config, "app", {"fal_api_key": "private-key"}),
+        patch.object(
+            fal.requests,
+            "post",
+            return_value=_response(
+                {
+                    "request_id": "req-unsafe",
+                    "status_url": "https://example.com/requests/req-unsafe/status",
+                },
+                202,
+            ),
+        ),
+        patch.object(fal.requests, "get") as get,
+    ):
+        with pytest.raises(fal.FalUnconfirmedTaskError) as error:
+            fal.generate_videos("sunrise", 3)
+
+    assert error.value.request_id == "req-unsafe"
+    get.assert_not_called()
+
+
+def test_fal_submission_shows_content_policy_detail_without_input():
+    response = _response(
+        {
+            "detail": [
+                {
+                    "type": "content_policy_violation",
+                    "msg": "The content could not be processed because it contained material flagged by a content checker.",
+                    "input": {"prompt": "Neymar baby face"},
+                }
+            ]
+        },
+        422,
+    )
+    with (
+        patch.object(config, "app", {"fal_api_key": "private-key"}),
+        patch.object(fal.requests, "post", return_value=response),
+    ):
+        with pytest.raises(fal.FalError) as error:
+            fal.generate_videos("Neymar baby face", 3)
+
+    assert "HTTP 422" in str(error.value)
+    assert "content_policy_violation" in str(error.value)
+    assert "flagged by a content checker" in str(error.value)
+    assert "Neymar baby face" not in str(error.value)
+
+
+def test_fal_content_policy_detail_reaches_task_error():
+    params = VideoParams(video_subject="Neymar", video_source="fal")
+    memory_state = sm.MemoryState()
+    response = _response(
+        {
+            "detail": [
+                {
+                    "type": "content_policy_violation",
+                    "msg": "The content could not be processed because it contained material flagged by a content checker.",
+                    "input": {"prompt": "Neymar baby face"},
+                }
+            ]
+        },
+        422,
+    )
+    with (
+        patch.object(config, "app", {"fal_api_key": "private-key"}),
+        patch.object(task_service.sm, "state", memory_state),
+        patch.object(fal.requests, "post", return_value=response),
+    ):
+        result = task_service.get_video_materials(
+            task_id="fal-policy-error",
+            params=params,
+            video_terms=["Neymar baby face"],
+            audio_duration=3,
+        )
+
+    assert result is None
+    failed = memory_state.get_task("fal-policy-error")
+    assert failed["failed_stage"] == "materials"
+    assert "content_policy_violation" in failed["error"]
+    assert "flagged by a content checker" in failed["error"]
+    assert "Neymar baby face" not in failed["error"]
+
+
+def test_fal_completed_error_shows_detail_and_request_id():
+    with (
+        patch.object(config, "app", {"fal_api_key": "private-key"}),
+        patch.object(
+            fal.requests,
+            "post",
+            return_value=_response({"request_id": "req-policy"}, 202),
+        ),
+        patch.object(
+            fal.requests,
+            "get",
+            return_value=_response(
+                {
+                    "status": "COMPLETED",
+                    "error": {"type": "content_policy_violation", "msg": "Prompt rejected"},
+                }
+            ),
+        ),
+    ):
+        with pytest.raises(fal.FalError) as error:
+            fal.generate_videos("Neymar baby face", 3)
+
+    assert error.value.request_id == "req-policy"
+    assert "content_policy_violation: Prompt rejected" in str(error.value)
+
+
 def test_fal_poll_timeout_preserves_remote_request_id():
     with (
         patch.object(config, "app", {"fal_api_key": "private-key"}),
         patch.object(
             fal.requests,
             "post",
-            side_effect=[_response({"request_id": "req-456"}, 202)]
-            + [requests.Timeout()] * fal.MAX_POLL_FAILURES,
+            return_value=_response({"request_id": "req-456"}, 202),
         ) as post,
+        patch.object(
+            fal.requests,
+            "get",
+            side_effect=[requests.Timeout()] * fal.MAX_POLL_FAILURES,
+        ) as get,
         patch.object(fal.time, "sleep"),
     ):
         with pytest.raises(fal.FalUnconfirmedTaskError) as error:
             fal.generate_videos("sunrise", 5)
     assert error.value.request_id == "req-456"
-    assert post.call_count == fal.MAX_POLL_FAILURES + 1
+    post.assert_called_once()
+    assert get.call_count == fal.MAX_POLL_FAILURES
 
 
 def test_fal_material_generation_stops_after_enough_downloaded_video():

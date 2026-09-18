@@ -71,16 +71,72 @@ def _request_json(response: requests.Response, request_id: str = "") -> dict:
     return payload
 
 
-def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
-    request_url = f"{QUEUE_URL}/requests/{quote(request_id, safe='')}"
+def _error_detail(payload: Any) -> str:
+    if isinstance(payload, dict) and ("detail" in payload or "error" in payload):
+        detail = payload.get("detail", payload.get("error"))
+    else:
+        detail = payload
+    if isinstance(detail, list):
+        messages = [_error_detail(item) for item in detail]
+        return "; ".join(message for message in messages if message)
+    if isinstance(detail, dict):
+        message = detail.get("msg") or detail.get("message")
+        error_type = detail.get("type")
+        if isinstance(message, str) and message.strip():
+            return (
+                f"{error_type}: {message.strip()}"
+                if isinstance(error_type, str) and error_type.strip()
+                else message.strip()
+            )
+    if isinstance(detail, str):
+        return detail.strip()
+    return ""
+
+
+def _response_error_detail(response: requests.Response) -> str:
+    try:
+        return _error_detail(response.json())
+    except ValueError:
+        return ""
+
+
+def _queue_link(submission: dict, field: str, fallback: str, request_id: str) -> str:
+    link = submission.get(field)
+    if not link:
+        return fallback
+    try:
+        parsed = urlsplit(link) if isinstance(link, str) else None
+    except ValueError:
+        parsed = None
+    if (
+        not parsed
+        or parsed.scheme != "https"
+        or parsed.hostname != "queue.fal.run"
+        or parsed.username
+        or parsed.password
+        or parsed.fragment
+    ):
+        raise FalUnconfirmedTaskError(
+            f"fal.ai returned an invalid {field}; check the request in fal.ai",
+            request_id,
+        )
+    return link
+
+
+def _poll_request(
+    request_id: str,
+    headers: dict[str, str],
+    status_url: str,
+    response_url: str,
+) -> dict:
     deadline = time.monotonic() + _setting_seconds("fal_run_timeout", RUN_TIMEOUT)
     failures = 0
     interval = _setting_seconds("fal_poll_interval", POLL_INTERVAL)
 
     while time.monotonic() < deadline:
         try:
-            response = requests.post(
-                f"{request_url}/status",
+            response = requests.get(
+                status_url,
                 headers=headers,
                 timeout=30,
                 verify=config.app.get("tls_verify", True),
@@ -88,8 +144,10 @@ def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
             if response.status_code in {429, 500, 502, 503, 504}:
                 raise requests.HTTPError(response=response)
             if response.status_code >= 400:
+                detail = _response_error_detail(response)
                 raise FalError(
-                    f"fal.ai status lookup failed (HTTP {response.status_code})",
+                    f"fal.ai status lookup failed (HTTP {response.status_code})"
+                    + (f": {detail}" if detail else ""),
                     request_id,
                 )
             status = _request_json(response, request_id)
@@ -107,7 +165,12 @@ def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
         state = status.get("status")
         if state == "COMPLETED":
             if status.get("error"):
-                raise FalError("fal.ai video generation failed", request_id)
+                detail = _error_detail(status.get("error"))
+                raise FalError(
+                    "fal.ai video generation failed"
+                    + (f": {detail}" if detail else ""),
+                    request_id,
+                )
             break
         if state not in {"IN_QUEUE", "IN_PROGRESS"}:
             raise FalUnconfirmedTaskError(
@@ -122,8 +185,8 @@ def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
         )
 
     try:
-        response = requests.post(
-            request_url,
+        response = requests.get(
+            response_url,
             headers=headers,
             timeout=30,
             verify=config.app.get("tls_verify", True),
@@ -134,8 +197,10 @@ def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
             request_id,
         ) from exc
     if response.status_code >= 400:
+        detail = _response_error_detail(response)
         raise FalUnconfirmedTaskError(
-            f"fal.ai video completed but result lookup failed (HTTP {response.status_code})",
+            f"fal.ai video completed but result lookup failed (HTTP {response.status_code})"
+            + (f": {detail}" if detail else ""),
             request_id,
         )
     return _request_json(response, request_id)
@@ -180,12 +245,16 @@ def generate_videos(
             "fal.ai submission outcome is unknown; check recent requests in fal.ai"
         ) from exc
     if response.status_code >= 500:
+        detail = _response_error_detail(response)
         raise FalUnconfirmedTaskError(
             f"fal.ai submission outcome is unknown (HTTP {response.status_code}); check recent requests in fal.ai"
+            + (f": {detail}" if detail else "")
         )
     if response.status_code >= 400:
+        detail = _response_error_detail(response)
         raise FalError(
             f"fal.ai rejected video generation (HTTP {response.status_code})"
+            + (f": {detail}" if detail else "")
         )
     submission = _request_json(response)
     request_id = str(submission.get("request_id") or "").strip()
@@ -194,7 +263,21 @@ def generate_videos(
             "fal.ai did not return a request ID; check recent requests in fal.ai"
         )
 
-    result = _poll_request(request_id, headers)
+    request_url = f"{QUEUE_URL}/requests/{quote(request_id, safe='')}"
+    status_url = _queue_link(
+        submission, "status_url", f"{request_url}/status", request_id
+    )
+    response_url = _queue_link(
+        submission, "response_url", request_url, request_id
+    )
+    result = _poll_request(request_id, headers, status_url, response_url)
+    if result.get("error"):
+        detail = _error_detail(result.get("error"))
+        raise FalError(
+            "fal.ai video generation failed"
+            + (f": {detail}" if detail else ""),
+            request_id,
+        )
     video = result.get("video")
     url = video.get("url") if isinstance(video, dict) else None
     try:
