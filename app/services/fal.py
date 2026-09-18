@@ -79,7 +79,7 @@ def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
 
     while time.monotonic() < deadline:
         try:
-            response = requests.get(
+            response = requests.post(
                 f"{request_url}/status",
                 headers=headers,
                 timeout=30,
@@ -122,7 +122,7 @@ def _poll_request(request_id: str, headers: dict[str, str]) -> dict:
         )
 
     try:
-        response = requests.get(
+        response = requests.post(
             request_url,
             headers=headers,
             timeout=30,

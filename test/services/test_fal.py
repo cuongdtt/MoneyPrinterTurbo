@@ -30,30 +30,29 @@ def test_fal_submits_polls_and_returns_video_with_request_id():
         patch.object(
             fal.requests,
             "post",
-            return_value=_response({"request_id": "req-123"}, 202),
-        ) as post,
-        patch.object(
-            fal.requests,
-            "get",
             side_effect=[
+                _response({"request_id": "req-123"}, 202),
                 _response({"status": "IN_QUEUE"}),
                 _response({"status": "COMPLETED"}),
                 _response({"video": {"url": "https://v3.fal.media/video.mp4"}}),
             ],
-        ) as get,
+        ) as post,
         patch.object(fal.time, "sleep"),
     ):
         items = fal.generate_videos("  sunrise  ", 2, VideoAspect.portrait)
 
-    assert post.call_count == 1
-    assert post.call_args.args[0] == fal.QUEUE_URL
-    assert post.call_args.kwargs["headers"]["Authorization"] == "Key private-key"
-    assert post.call_args.kwargs["json"] == {
+    assert post.call_count == 4
+    assert post.call_args_list[0].args[0] == fal.QUEUE_URL
+    assert post.call_args_list[0].kwargs["headers"]["Authorization"] == "Key private-key"
+    assert post.call_args_list[0].kwargs["json"] == {
         "prompt": "sunrise",
         "duration": "3",
         "aspect_ratio": "9:16",
     }
-    assert get.call_count == 3
+    request_url = f"{fal.QUEUE_URL}/requests/req-123"
+    assert post.call_args_list[1].args[0] == f"{request_url}/status"
+    assert post.call_args_list[2].args[0] == f"{request_url}/status"
+    assert post.call_args_list[3].args[0] == request_url
     assert items[0].provider == "fal"
     assert items[0].duration == 3
     assert items[0].source_info["asset_id"] == "req-123"
@@ -79,15 +78,15 @@ def test_fal_poll_timeout_preserves_remote_request_id():
         patch.object(
             fal.requests,
             "post",
-            return_value=_response({"request_id": "req-456"}, 202),
-        ),
-        patch.object(fal.requests, "get", side_effect=requests.Timeout()) as get,
+            side_effect=[_response({"request_id": "req-456"}, 202)]
+            + [requests.Timeout()] * fal.MAX_POLL_FAILURES,
+        ) as post,
         patch.object(fal.time, "sleep"),
     ):
         with pytest.raises(fal.FalUnconfirmedTaskError) as error:
             fal.generate_videos("sunrise", 5)
     assert error.value.request_id == "req-456"
-    assert get.call_count == fal.MAX_POLL_FAILURES
+    assert post.call_count == fal.MAX_POLL_FAILURES + 1
 
 
 def test_fal_material_generation_stops_after_enough_downloaded_video():
