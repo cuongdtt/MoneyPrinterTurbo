@@ -43,6 +43,7 @@ _CLI_VIDEO_SOURCES = (
     "coverr",
     "volcengine_seedance",
     "ofox",
+    "fal",
     "metaso_minimax",
     "openai_image",
     "local",
@@ -309,6 +310,14 @@ Batch manifests:
         help=(
             "confirm that OFox video generation creates paid tasks; required "
             "with --video-source ofox for materials or video output"
+        ),
+    )
+    material_group.add_argument(
+        "--confirm-fal-charge",
+        action="store_true",
+        help=(
+            "confirm that fal.ai video generation creates paid tasks; required "
+            "with --video-source fal for materials or video output"
         ),
     )
     material_group.add_argument(
@@ -626,6 +635,13 @@ Batch manifests:
         parser.error(
             "--confirm-ofox-charge is required with --video-source ofox"
         )
+    if (
+        not args.batch_file
+        and args.video_source == "fal"
+        and stage_requires_materials
+        and not args.confirm_fal_charge
+    ):
+        parser.error("--confirm-fal-charge is required with --video-source fal")
     if (
         not args.batch_file
         and args.video_source == "metaso_minimax"
@@ -1013,6 +1029,7 @@ def _validate_batch_task_params(
     custom_position_is_explicit: bool,
     seedance_charge_confirmed: bool,
     ofox_charge_confirmed: bool,
+    fal_charge_confirmed: bool,
     metaso_minimax_charge_confirmed: bool,
 ) -> None:
     if not params.video_subject.strip() and not params.video_script.strip():
@@ -1060,6 +1077,12 @@ def _validate_batch_task_params(
         and not ofox_charge_confirmed
     ):
         raise ValueError("--confirm-ofox-charge is required for OFox video generation")
+    if (
+        params.video_source == "fal"
+        and stop_at in {"materials", "video"}
+        and not fal_charge_confirmed
+    ):
+        raise ValueError("--confirm-fal-charge is required for fal.ai video generation")
     if (
         params.video_source == "metaso_minimax"
         and stop_at in {"materials", "video"}
@@ -1169,6 +1192,7 @@ def _build_batch_tasks(args: argparse.Namespace) -> list[VideoParams]:
                 ),
                 seedance_charge_confirmed=args.confirm_seedance_charge,
                 ofox_charge_confirmed=args.confirm_ofox_charge,
+                fal_charge_confirmed=args.confirm_fal_charge,
                 metaso_minimax_charge_confirmed=(
                     args.confirm_metaso_minimax_charge
                 ),

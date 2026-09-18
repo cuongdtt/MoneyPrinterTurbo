@@ -633,7 +633,7 @@ def _generate_response(prompt: str, app_config=None) -> str:
         return f"Error: {_sanitize_error_message(e)}"
 
 
-def test_connection() -> tuple[bool, str, float]:
+def test_connection(app_config=None) -> tuple[bool, str, float]:
     """
     使用当前 Provider 配置发起一次最小请求，验证实际生成链路是否可用。
 
@@ -642,7 +642,15 @@ def test_connection() -> tuple[bool, str, float]:
     用户的视频主题或文案。返回值依次为成功状态、错误信息和请求耗时。
     """
     started_at = perf_counter()
-    response = _generate_response(prompt="Reply with exactly: OK")
+    if app_config is None:
+        # Preserve the original call shape for callers and integrations that
+        # monkeypatch the low-level generator during a connection check.
+        response = _generate_response(prompt="Reply with exactly: OK")
+    else:
+        response = _generate_response(
+            prompt="Reply with exactly: OK",
+            app_config=app_config,
+        )
     elapsed = perf_counter() - started_at
 
     if not response:

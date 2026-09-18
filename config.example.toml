@@ -64,7 +64,7 @@ tls_verify = true
 # -----------------------------------------------------------------------------
 
 # Available values: "pexels", "pixabay", "coverr", "wavespeed",
-# "volcengine_seedance", "ofox", "metaso_minimax", "loomloom",
+# "volcengine_seedance", "ofox", "fal", "metaso_minimax", "loomloom",
 # "openai_image", "local".
 # "wavespeed" generates brand-new clips with WaveSpeed AI text-to-video models
 # instead of searching stock footage; generation is billed per request.
@@ -157,6 +157,14 @@ ofox_max_duration = 15
 ofox_provider = "byteplus"
 ofox_poll_interval = 5
 ofox_run_timeout = 1800
+
+# fal.ai text-to-video uses the Kling V3 Turbo Standard endpoint. Its input
+# schema supports 3-15 second clips and 16:9, 9:16, or 1:1 aspect ratios.
+# Other fal endpoints require their own input mapping and are not supported by
+# this source yet. When empty, FAL_KEY is used. Each submitted clip may be billed.
+fal_api_key = ""
+fal_poll_interval = 5
+fal_run_timeout = 1800
 
 # Metaso proxies the MiniMax H3 V2 asynchronous video API. Register and obtain
 # an independent API key through https://metaso.cn/minimax-h3/?s=MPT. Its mk-*

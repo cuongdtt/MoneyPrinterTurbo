@@ -1,6 +1,16 @@
 {
   "Language": "简体中文",
   "Translation": {
+    "fal.ai AI Video": "fal.ai AI 视频",
+    "fal.ai AI Video Help": "使用 fal.ai 的 Kling V3 Turbo Standard 文生视频模型，根据脚本关键词生成新片段。每个提交的片段可能产生费用。",
+    "fal.ai API Key": "fal.ai API Key（[获取 API Key](https://fal.ai/dashboard/keys)）",
+    "fal.ai Model Help": "当前支持 Kling V3 Turbo Standard：3～15 秒片段，支持 16:9、9:16 和 1:1 画幅。",
+    "Please Enter the fal.ai API Key": "请输入 fal.ai API Key，或设置 FAL_KEY。",
+    "fal.ai Billing Notice": "fal.ai 可能按生成片段收费。根据估算配音时长，预计需要提交 {min}～{max} 个付费任务。素材足够时立即停止生成。",
+    "fal.ai Billing Notice Without Script": "fal.ai 可能按生成片段收费。输入或生成脚本后可查看预计任务数量。",
+    "Confirm fal.ai Charge": "我了解 fal.ai 视频生成可能创建付费任务",
+    "Confirm fal.ai Charge Help": "片段逐个提交，覆盖配音时长后即停止生成。",
+    "Confirm fal.ai Charge Required": "生成视频前请先确认 fal.ai 的收费提示。",
     "Login Required": "需要登录",
     "Please login to access settings": "请登录后访问配置设置 (:gray[默认用户名: admin, 密码: admin, 您可以在 config.toml 中修改])",
     "Username": "用户名",

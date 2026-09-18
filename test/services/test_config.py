@@ -45,6 +45,7 @@ class TestConfigPersistence:
             "coverr",
             "volcengine_seedance",
             "ofox",
+            "fal",
             "metaso_minimax",
             "loomloom",
             "local",
@@ -59,6 +60,7 @@ class TestConfigPersistence:
         assert app_config["ofox_api_key"] == ""
         assert app_config["ofox_base_url"].startswith("https://")
         assert app_config["ofox_text_to_video_model"]
+        assert app_config["fal_api_key"] == ""
         assert app_config["metaso_minimax_api_key"] == ""
         assert app_config["metaso_minimax_base_url"].startswith("https://")
         assert app_config["metaso_minimax_resolution"] in {"768P", "2K"}

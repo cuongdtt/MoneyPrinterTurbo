@@ -30,6 +30,7 @@ pixabay_api_keys = []
 coverr_api_keys = []
 volcengine_seedance_api_key = ""
 ofox_api_key = ""
+fal_api_key = ""
 metaso_minimax_api_key = ""
 oneapi_api_key = ""
 oneapi_base_url = ""
@@ -176,6 +177,27 @@ class TestMptAgentSkill(unittest.TestCase):
                     ["--video-source", "ofox", "--confirm-ofox-charge"],
                 )
             self.assertEqual(confirmed_missing, [])
+
+    def test_fal_source_requires_key_and_explicit_charge_confirmation(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            config_path = Path(temp_dir) / "config.toml"
+            config_path.write_text(
+                MINIMAL_CONFIG.replace(
+                    'moonshot_api_key = ""', 'moonshot_api_key = "configured"'
+                ),
+                encoding="utf-8",
+            )
+            with patch.dict(os.environ, {}, clear=True):
+                _, missing = mpt_agent.missing_config(
+                    config_path, ["--video-source", "fal"]
+                )
+            self.assertEqual(missing, ["fal_api_key", "confirm_fal_charge"])
+            with patch.dict(os.environ, {"FAL_KEY": "environment-key"}, clear=True):
+                _, missing = mpt_agent.missing_config(
+                    config_path,
+                    ["--video-source", "fal", "--confirm-fal-charge"],
+                )
+            self.assertEqual(missing, [])
 
     def test_ofox_source_accepts_the_provider_specific_environment_key(self):
         with tempfile.TemporaryDirectory() as temp_dir:

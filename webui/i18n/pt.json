@@ -1,6 +1,16 @@
 {
   "Language": "Português",
   "Translation": {
+    "fal.ai AI Video": "fal.ai AI Video",
+    "fal.ai AI Video Help": "Generate new video clips from script keywords with fal.ai's Kling V3 Turbo Standard text-to-video model. Each submitted clip may be billed.",
+    "fal.ai API Key": "fal.ai API Key ([Get API Key](https://fal.ai/dashboard/keys))",
+    "fal.ai Model Help": "Supported model: Kling V3 Turbo Standard. This integration accepts 3–15 second clips and 16:9, 9:16, or 1:1 output.",
+    "Please Enter the fal.ai API Key": "Please enter the fal.ai API Key or set FAL_KEY.",
+    "fal.ai Billing Notice": "fal.ai may bill each generated clip. The estimated voiceover needs roughly {min}-{max} paid task(s). Generation stops when enough footage is collected.",
+    "fal.ai Billing Notice Without Script": "fal.ai may bill each generated clip. Enter or generate a script to see the estimated task count.",
+    "Confirm fal.ai Charge": "I understand fal.ai video generation may create paid tasks",
+    "Confirm fal.ai Charge Help": "Clips are submitted one at a time. Generation stops once they cover the voiceover duration.",
+    "Confirm fal.ai Charge Required": "Please confirm the fal.ai charge before generating the video.",
     "Login Required": "Login Necessário",
     "Please login to access settings": "Por favor, faça login para acessar as configurações",
     "Username": "Nome de usuário",

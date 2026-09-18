@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Use Reference Images and Videos | MoneyPrinterTurbo</title>
+  <style>
+    :root { --ink:#182522; --muted:#61716b; --paper:#f4f7f2; --panel:#fff; --line:#d6dfd8; --accent:#056b5d; --soft:#dcefe8; --warn:#9a4d18; --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"SFMono-Regular",Consolas,monospace; }
+    * { box-sizing:border-box; } body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--sans); line-height:1.55; }
+    .shell { max-width:1040px; margin:auto; padding:24px; } header { padding:48px 0 34px; border-bottom:1px solid var(--ink); }
+    .eyebrow,.tag { color:var(--accent); font:700 12px var(--mono); letter-spacing:.1em; text-transform:uppercase; } h1 { max-width:790px; margin:12px 0 18px; font-size:clamp(2.5rem,7vw,5.4rem); line-height:.96; letter-spacing:-.07em; }
+    .lead,.section-intro,.why { color:var(--muted); } .lead { max-width:760px; font-size:1.18rem; } nav { display:flex; flex-wrap:wrap; gap:9px; margin:24px 0 42px; } nav a { color:var(--accent); padding:7px 11px; border:1px solid var(--line); background:var(--panel); text-decoration:none; font-size:.9rem; }
+    section { margin:44px 0; scroll-margin-top:20px; } h2 { margin:0 0 8px; font-size:2rem; letter-spacing:-.04em; } h3 { margin:0 0 8px; font-size:1.15rem; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; } .card { padding:21px; border:1px solid var(--line); background:var(--panel); } .card.recommended { border-color:var(--accent); background:var(--soft); }
+    .tag { display:inline-block; margin-bottom:12px; font-size:11px; } .callout { margin:18px 0; padding:17px 20px; border-left:4px solid var(--accent); background:var(--soft); } .warning { border-left-color:var(--warn); background:#fff0e5; }
+    ol,ul { padding-left:22px; } li+li { margin-top:7px; } table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); } th,td { padding:13px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } th { color:var(--muted); font:700 11px var(--mono); letter-spacing:.07em; text-transform:uppercase; } tr:last-child td { border-bottom:0; }
+    code,pre { font-family:var(--mono); } pre { overflow:auto; margin:12px 0 0; padding:17px; color:#e8f5ef; background:#172521; border-radius:3px; } footer { margin:58px 0 20px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; }
+    @media (max-width:720px) { .shell { padding:18px; } .grid { grid-template-columns:1fr; } th,td { padding:10px 8px; font-size:.9rem; } }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header>
+    <div class="eyebrow">MoneyPrinterTurbo / local material</div>
+    <h1>Build a video from your reference images and clips.</h1>
+    <p class="lead">Upload your own still images and video clips, then let MoneyPrinterTurbo assemble them with narration, subtitles, music, and the selected output format.</p>
+  </header>
+
+  <nav aria-label="Sections">
+    <a href="#what-it-does">What it does</a><a href="#webui">WebUI setup</a><a href="#images">Reference images</a><a href="#videos">Reference videos</a><a href="#controls">Assembly controls</a><a href="#cli">CLI</a><a href="#limits">Limits</a>
+  </nav>
+
+  <section id="what-it-does">
+    <h2>What “Local file” means</h2>
+    <p class="section-intro">Local file is the right source when your images or clips should become the actual visual material in the finished video.</p>
+    <div class="grid">
+      <article class="card recommended"><span class="tag">Supported uploads</span><h3>Images and video files</h3><p>Upload <code>.jpg</code>, <code>.jpeg</code>, <code>.png</code>, <code>.mp4</code>, <code>.mov</code>, <code>.avi</code>, <code>.flv</code>, or <code>.mkv</code>. You may upload a mixture of images and clips in one task.</p></article>
+      <article class="card"><span class="tag">How it is used</span><h3>Visual source, not an AI prompt reference</h3><p>The uploaded material is placed into the final timeline. Still images become timed visual segments; video files are prepared as clips. Narration, subtitles, music, transitions, and output aspect ratio are applied around them.</p></article>
+    </div>
+    <div class="callout warning"><strong>Current capability:</strong> this workflow does not make a new AI video that copies a reference image or transforms a reference video. For that, use a provider or model that explicitly offers image-to-video or video-to-video input. In MoneyPrinterTurbo, local uploads are final visual material.</div>
+  </section>
+
+  <section id="webui">
+    <h2>Set up local materials in the WebUI</h2>
+    <ol>
+      <li>Enter a <strong>Video Subject</strong>, or paste a complete <strong>Video Script</strong>.</li>
+      <li>In <strong>Video Settings</strong>, open <strong>Video Source</strong>.</li>
+      <li>Choose <strong>Local Material → Local file</strong>.</li>
+      <li>Use <strong>Upload Local Files</strong> to select your reference image(s), video clip(s), or both.</li>
+      <li>Select the assembly controls described below, then choose <strong>Generate Video</strong>.</li>
+    </ol>
+    <div class="callout"><strong>Order matters:</strong> upload files in the story order you want, then use <strong>Video Concat Mode → Sequential</strong>. This is the clearest way to make scene 1, scene 2, and scene 3 appear in that sequence.</div>
+  </section>
+
+  <section id="images">
+    <h2>Use reference images</h2>
+    <div class="grid">
+      <article class="card"><h3>One image</h3><p>Use a single image when you want a narrated title card, product image, diagram, or still-photo video. The pipeline holds it as a visual segment while audio and subtitles continue.</p></article>
+      <article class="card"><h3>Several images</h3><p>Use images in the same order as the script. Set Sequential concatenation to make a slideshow-style story, with each image held for the selected clip duration.</p></article>
+      <article class="card"><h3>Portrait versus landscape</h3><p>For a portrait 9:16 output, portrait images need less cropping. For a landscape 16:9 output, landscape images need less cropping. Choose Fit/black bars when every part of an image must remain visible.</p></article>
+      <article class="card"><h3>Image timing</h3><p><strong>Clip Duration</strong> is the maximum length of a visual segment, not the total video length. Supply enough images or let material repeat so the visual track can cover the narration.</p></article>
+    </div>
+  </section>
+
+  <section id="videos">
+    <h2>Use reference video clips</h2>
+    <div class="grid">
+      <article class="card"><h3>Single clip</h3><p>Upload a clip when it is the primary visual source. It is prepared for the selected canvas, and its visual timing is assembled around the narration.</p></article>
+      <article class="card"><h3>Multiple clips</h3><p>Upload clips in narrative order and choose Sequential mode. Use Random mode only when the clips can safely appear in any order, such as B-roll montages.</p></article>
+      <article class="card"><h3>Mixed image + video story</h3><p>A task can mix title images, product shots, screenshots, and live-action clips. Keep their order intentional and check the first output before creating variants.</p></article>
+      <article class="card"><h3>Audio in source clips</h3><p>The project’s selected narration and background music form the intended audio track. If a source clip contains meaningful audio, preview the generated result and adjust your source or audio settings as needed.</p></article>
+    </div>
+  </section>
+
+  <section id="controls">
+    <h2>Controls that affect your references</h2>
+    <table><thead><tr><th>Setting</th><th>Effect on uploaded material</th><th>Best default</th></tr></thead><tbody>
+      <tr><td>Video Concat Mode</td><td>Sequential preserves material order; Random varies the order.</td><td>Sequential for reference-driven stories.</td></tr>
+      <tr><td>Match Visuals to Script Order</td><td>Forces the final assembly to follow narrative order.</td><td>Enable when each uploaded item maps to a script section.</td></tr>
+      <tr><td>Video Ratio</td><td>Sets the final 9:16, 16:9, or 1:1 canvas.</td><td>Match the intended publishing platform.</td></tr>
+      <tr><td>Fit Mode</td><td>Fill/crop fills the canvas; Fit/black bars preserves the full frame.</td><td>Fit/black bars for screenshots, diagrams, or uncroppable references.</td></tr>
+      <tr><td>Clip Duration</td><td>Caps the duration of each visual segment.</td><td>Start at 5 seconds for still images.</td></tr>
+      <tr><td>Clip Speed</td><td>Changes visual playback speed, while narration and subtitles keep their own timing.</td><td>1.0× for most reference clips.</td></tr>
+      <tr><td>Transition Mode</td><td>Adds an effect between adjacent materials.</td><td>None or FadeIn for clean edits.</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="cli">
+    <h2>Use local materials from the CLI</h2>
+    <p class="section-intro">Pass comma-separated file paths with <code>--video-materials</code>. Absolute paths are accepted; relative paths resolve from the current directory, then <code>storage/local_videos</code> as a compatibility fallback.</p>
+    <pre><code>python cli.py \
+  --video-source local \
+  --video-materials "/absolute/path/01-cover.png,/absolute/path/02-demo.mp4" \
+  --video-script "Introduce the product, show the demo, then explain the result."</code></pre>
+    <p>To control material storage for downloaded or generated material, set <code>material_directory</code> in <code>config.toml</code>. This is optional for files selected directly in the WebUI.</p>
+  </section>
+
+  <section id="limits">
+    <h2>Before you generate</h2>
+    <ul>
+      <li>Use media you own or are licensed to use.</li>
+      <li>Match source orientation to the output ratio whenever possible to reduce cropping or black bars.</li>
+      <li>For an ordered story, name files with prefixes such as <code>01-</code>, <code>02-</code>, and upload them in that order.</li>
+      <li>Start with one video output and preview it before producing a batch.</li>
+      <li>Keep the script duration realistic for the amount of uploaded material; add more images or clips for a longer narration.</li>
+    </ul>
+  </section>
+
+  <footer>MoneyPrinterTurbo local material guide. See <a href="settings-guide.html">Settings Guide</a> for the broader video, audio, subtitle, and provider configuration reference.</footer>
+</main>
+</body>
+</html>

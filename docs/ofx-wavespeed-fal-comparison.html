@@ -188,7 +188,7 @@
       <aside class="stamp">Provider decision sheet<br>September 2026</aside>
     </header>
 
-    <p class="lead">OFox and WaveSpeed are ready-to-use sources in this checkout. fal has the broadest model marketplace, but needs a small provider adapter before it can produce clips through MoneyPrinterTurbo.</p>
+    <p class="lead">OFox, WaveSpeed, and fal are video sources in this checkout. fal currently supports one text-to-video endpoint: Kling V3 Turbo Standard.</p>
 
     <section class="provider-grid" aria-label="Provider summaries">
       <article class="provider">
@@ -216,15 +216,15 @@
       </article>
 
       <article class="provider">
-        <div class="provider-name"><h2>fal</h2><span>Adapter needed</span></div>
-        <p class="thesis">One API surface for a broad, frequently changing catalog of text-to-video and image-to-video models.</p>
+        <div class="provider-name"><h2>fal</h2><span>Built in</span></div>
+        <p class="thesis">A queued text-to-video route using Kling V3 Turbo Standard. Other fal model schemas are not wired into this source.</p>
         <dl>
-          <dt>Model selection</dt><dd>Endpoint ID, such as a Kling, Wan, Pika, Vidu, or Seedance route</dd>
-          <dt>Flow</dt><dd>Queued job or subscribe helper → result video URL</dd>
-          <dt>Required addition</dt><dd>Provider source, settings UI, schema profiles, polling and download logic</dd>
-          <dt>Credential</dt><dd><code>FAL_KEY</code></dd>
+          <dt>Supported model</dt><dd>Kling V3 Turbo Standard</dd>
+          <dt>Flow</dt><dd>Submit queued job → poll → download MP4</dd>
+          <dt>Controls in repo</dt><dd>Duration, aspect ratio, polling interval, timeout</dd>
+          <dt>Credential</dt><dd><code>fal_api_key</code> or <code>FAL_KEY</code></dd>
         </dl>
-        <p class="fit">Choose it when catalog flexibility outweighs a small integration effort.</p>
+        <p class="fit">Choose it for the supported Kling model; other fal endpoints need a new input mapping.</p>
       </article>
     </section>
 
@@ -236,18 +236,18 @@
       </div>
       <div class="matrix" role="table" aria-label="Video provider comparison">
         <div class="matrix-row header" role="row"><span role="columnheader">Question</span><span role="columnheader">OFox</span><span role="columnheader">WaveSpeed</span><span role="columnheader">fal</span></div>
-        <div class="matrix-row" role="row"><span role="rowheader">Works from current WebUI</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="limited">No</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Works from current WebUI</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="yes">Yes</span></div>
         <div class="matrix-row" role="row"><span role="rowheader">Text-to-video</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="yes">Yes, per model</span></div>
-        <div class="matrix-row" role="row"><span role="rowheader">Image-to-video</span><span>Model dependent</span><span>Model dependent</span><span class="yes">Strong catalog</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Image-to-video</span><span>Model dependent</span><span>Model dependent</span><span>Not in this integration</span></div>
         <div class="matrix-row" role="row"><span role="rowheader">Single provider key</span><span class="yes">Yes</span><span class="yes">Yes</span><span class="yes">Yes</span></div>
-        <div class="matrix-row" role="row"><span role="rowheader">Switch models without code change</span><span class="yes">Within OFox catalog</span><span class="yes">Via model ID</span><span>Endpoint ID changes; schema may differ</span></div>
-        <div class="matrix-row" role="row"><span role="rowheader">Best first move</span><span>Turn on OFox</span><span>Turn on WaveSpeed</span><span>Implement a focused adapter</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Switch models without code change</span><span class="yes">Within OFox catalog</span><span class="yes">Via model ID</span><span>No; endpoint schemas differ</span></div>
+        <div class="matrix-row" role="row"><span role="rowheader">Best first move</span><span>Turn on OFox</span><span>Turn on WaveSpeed</span><span>Configure fal key</span></div>
       </div>
     </section>
 
     <section class="implementation">
       <h2>If you choose fal</h2>
-      <p>Add a <code>fal</code> video source alongside the existing providers, keep <code>FAL_KEY</code> server-side, and begin with one model profile—its endpoint ID plus validated duration, resolution, and input fields. fal’s queue is compatible with the project’s submit → poll → download pattern; the variable part is each model’s input schema.</p>
+      <p>Select the <code>fal</code> video source and configure <code>fal_api_key</code> or <code>FAL_KEY</code>. The current adapter submits Kling V3 Turbo Standard clips one at a time, polls the queue, and downloads each result. Other fal models need their own input and output mapping.</p>
     </section>
 
     <section class="guide" aria-labelledby="setup-title">
@@ -286,7 +286,7 @@ api_key = ""</code></pre>
             <tr><td>WaveSpeed video</td><td>Creates a fresh text-to-video clip per visual term, polls the result, then downloads it.</td><td>Choose WaveSpeed; supply/approve visual terms, duration, and aspect ratio.</td><td><span class="required">Required:</span> <code>wavespeed_api_keys</code>. Optional controls: <code>wavespeed_text_to_video_model</code>, <code>wavespeed_min_duration</code>, <code>wavespeed_max_duration</code>.</td></tr>
             <tr><td>OFox video</td><td>Uses one OFox account to submit/poll text-to-video jobs for the chosen catalog model.</td><td>Choose OFox; enter terms, duration, aspect ratio, resolution, and provider selection.</td><td><span class="required">Required:</span> <code>ofox_api_key</code>. Optional: <code>ofox_text_to_video_model</code>, <code>ofox_resolution</code>, <code>ofox_provider</code>, duration/polling fields.</td></tr>
             <tr><td>VolcEngine or Metaso video</td><td>Submits asynchronous text-to-video jobs and composes their returned clips.</td><td>Choose the provider; give terms, duration, aspect ratio, resolution, and accept charge confirmation when shown.</td><td><span class="required">Required:</span> <code>volcengine_seedance_api_key</code> or <code>metaso_minimax_api_key</code>. Configure their optional model, resolution, duration, and timeout values only when required.</td></tr>
-            <tr><td>fal video</td><td>Would use fal endpoint/model profiles to submit a queued job and download its result.</td><td>Not available in the current WebUI or API.</td><td><span class="required">Important:</span> <code>FAL_KEY</code> alone is not enough. The repository does not yet read it; add a fal provider adapter, model profile validation, UI selection, and result handling first.</td></tr>
+            <tr><td>fal video</td><td>Submits Kling V3 Turbo Standard queued jobs and downloads the resulting clips.</td><td>Choose fal, provide visual terms, duration, and aspect ratio, then confirm the possible charge.</td><td><span class="required">Required:</span> <code>fal_api_key</code> or <code>FAL_KEY</code>. Optional: <code>fal_poll_interval</code> and <code>fal_run_timeout</code>.</td></tr>
             <tr><td>AI image material</td><td>Generates one image per term from an OpenAI-compatible endpoint, then animates each image into a clip.</td><td>Choose the image source; provide terms and, optionally, a prompt template or size.</td><td><span class="required">Required:</span> <code>openai_image_base_url</code> and <code>openai_image_model</code>. Add <code>openai_image_api_keys</code> only if the endpoint requires authentication.</td></tr>
             <tr><td>Edge TTS voice</td><td>Uses built-in Edge TTS and can reuse its timestamps for fast captions.</td><td>Select voice; set voice rate and volume.</td><td>No API key. Optional: <code>edge_tts_timeout</code>.</td></tr>
             <tr><td>Cloud or self-hosted TTS</td><td>Converts the script to narration through the selected provider.</td><td>Select provider and voice; enter a voice/model ID where the provider requires it.</td><td><span class="required">Required:</span> provider credential: <code>[azure] speech_key</code> + <code>speech_region</code>; <code>[siliconflow] api_key</code>; <code>gemini_api_key</code>; <code>mimo_api_key</code>; <code>[minimax_tts] api_key</code>; <code>[elevenlabs] api_key</code>; <code>[fish_audio] api_key</code>; or <code>[chatterbox] base_url</code> for a running local service.</td></tr>

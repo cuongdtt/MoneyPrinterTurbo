@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MoneyPrinterTurbo Settings Guide</title>
+  <style>
+    :root { --ink:#182522; --muted:#61716b; --paper:#f4f7f2; --panel:#fff; --line:#d6dfd8; --accent:#056b5d; --soft:#dcefe8; --warn:#9a4d18; --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"SFMono-Regular",Consolas,monospace; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:var(--sans); line-height:1.55; }
+    .shell { max-width:1120px; margin:auto; padding:24px; }
+    header { padding:48px 0 34px; border-bottom:1px solid var(--ink); }
+    .eyebrow { color:var(--accent); font:700 12px var(--mono); letter-spacing:.1em; text-transform:uppercase; }
+    h1 { max-width:820px; margin:12px 0 18px; font-size:clamp(2.4rem,7vw,5.5rem); line-height:.96; letter-spacing:-.07em; }
+    .lead { max-width:780px; color:var(--muted); font-size:1.18rem; }
+    nav { display:flex; flex-wrap:wrap; gap:9px; margin:24px 0 42px; }
+    nav a { color:var(--accent); padding:7px 11px; border:1px solid var(--line); background:var(--panel); text-decoration:none; font-size:.9rem; }
+    section { margin:42px 0; scroll-margin-top:20px; }
+    h2 { margin-bottom:8px; font-size:2rem; letter-spacing:-.04em; }
+    h3 { margin:0 0 8px; font-size:1.15rem; }
+    .section-intro { color:var(--muted); max-width:760px; }
+    .grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .card { padding:21px; border:1px solid var(--line); background:var(--panel); }
+    .card.recommended { border-color:var(--accent); background:var(--soft); }
+    .tag { display:inline-block; margin-bottom:12px; color:var(--accent); font:700 11px var(--mono); letter-spacing:.08em; text-transform:uppercase; }
+    .why { color:var(--muted); font-size:.93rem; }
+    table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); }
+    th,td { padding:13px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:var(--muted); font:700 11px var(--mono); letter-spacing:.07em; text-transform:uppercase; }
+    tr:last-child td { border-bottom:0; }
+    code, pre { font-family:var(--mono); }
+    pre { overflow:auto; padding:17px; color:#e8f5ef; background:#172521; border-radius:3px; }
+    .callout { margin:18px 0; padding:17px 20px; border-left:4px solid var(--accent); background:var(--soft); }
+    .warning { border-left-color:var(--warn); background:#fff0e5; }
+    ul { margin:9px 0 0; padding-left:21px; }
+    footer { margin:58px 0 20px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:.9rem; }
+    @media (max-width:720px) { .shell{padding:18px}.grid{grid-template-columns:1fr} th,td{padding:10px 8px;font-size:.9rem} }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header>
+    <div class="eyebrow">MoneyPrinterTurbo / configuration</div>
+    <h1>Settings that make the pipeline work.</h1>
+    <p class="lead">A practical guide to every important setting: what it controls, why it exists, and the safest defaults for a reliable text-to-video workflow.</p>
+  </header>
+
+  <nav aria-label="Sections">
+    <a href="#recommended">Recommended setup</a><a href="#script">Video Script</a><a href="#video">Video</a><a href="#providers">Providers &amp; keys</a><a href="#audio">Audio</a><a href="#subtitles">Subtitles</a><a href="#render">Rendering</a><a href="#flow">Workflow</a>
+  </nav>
+
+  <section id="recommended">
+    <h2>Recommended setup</h2>
+    <p class="section-intro">For most users, keep responsibilities separate: an LLM writes text, a voice provider reads it, and a material provider supplies visuals.</p>
+    <div class="grid">
+      <article class="card recommended"><span class="tag">Best general-purpose profile</span><h3>OpenAI + fal.ai + Edge TTS</h3><p>Use OpenAI for script and keyword generation, fal.ai for generated video clips, and Edge TTS for narration. This gives a clear, independent key for each service.</p><p class="why"><strong>Defaults:</strong> portrait 9:16, random concatenation, fill/crop, 5-second clips, 1 video, subtitles enabled.</p></article>
+      <article class="card"><span class="tag">Low-cost profile</span><h3>Local/Ollama + stock video + Edge TTS</h3><p>Use a local LLM and Pexels/Pixabay/Coverr. This avoids paid AI video submissions and is a good first test of the full pipeline.</p><p class="why"><strong>Trade-off:</strong> stock footage may be less literal than generated clips.</p></article>
+    </div>
+    <div class="callout warning"><strong>Important:</strong> a ChatGPT subscription is not an API key. OpenAI API usage is configured and billed separately. fal.ai video generation is also billed per submitted clip; the WebUI asks for confirmation before running it.</div>
+  </section>
+
+  <section id="script">
+    <h2>Video Script Settings</h2>
+    <p class="section-intro">These settings determine what the narrator says and which keywords are passed to material search or AI video generation.</p>
+    <div class="grid">
+      <article class="card"><h3>Video Subject</h3><p>The topic or angle of the video. It is the starting input for automatic script generation.</p><p class="why">Use a specific subject, audience, and promise for better results: “Three ways freelancers can automate invoices” is stronger than “AI”.</p></article>
+      <article class="card"><h3>Script Language</h3><p>Requests the language used by the generated script. Auto Detect follows the subject when possible.</p><p class="why">Keep the subject, script, and voice language aligned to avoid awkward narration.</p></article>
+      <article class="card"><h3>Video Script</h3><p>Optional manual override. If filled, it is used instead of generating a new script from the subject.</p><p class="why">Use complete punctuation; punctuation helps subtitle segmentation.</p></article>
+      <article class="card"><h3>Video Keywords</h3><p>Optional comma-separated visual terms. If empty, the selected LLM derives them from the script.</p><p class="why">Manual keywords are useful when you need brand-safe, literal visuals.</p></article>
+      <article class="card"><h3>Script Generation Method</h3><p><strong>Current LLM Provider</strong> uses the provider configured in LLM Settings. Shengsuan Cloud creates paid candidate batches and requires a quote confirmation.</p></article>
+      <article class="card"><h3>Advanced Script Settings</h3><p>Paragraph count controls script length. Custom requirements add style constraints. The system prompt defines the generation contract; restore the default unless you intentionally maintain your own prompt.</p></article>
+    </div>
+  </section>
+
+  <section id="video">
+    <h2>Video Settings</h2>
+    <p class="section-intro">These settings control where visuals come from and how they are assembled around the narration duration.</p>
+    <table><thead><tr><th>Setting</th><th>What it does</th><th>Recommended</th></tr></thead><tbody>
+      <tr><td>Video Source</td><td>Selects stock footage, AI video, AI image, or local files. fal.ai is an AI video source, not an LLM provider.</td><td>Pexels for low cost; fal.ai for generated footage.</td></tr>
+      <tr><td>Match Visuals to Script Order</td><td>Generates/matches terms in narrative order and forces sequential assembly.</td><td>On for educational or chronological videos; off for montage-style videos.</td></tr>
+      <tr><td>Concatenation Mode</td><td>Sequential keeps source order; Random varies the montage. Script-order matching overrides this to sequential.</td><td>Random when script-order matching is off.</td></tr>
+      <tr><td>Transition Mode</td><td>Controls the effect between clips.</td><td>None or FadeIn for clean, reliable output.</td></tr>
+      <tr><td>Video Ratio</td><td>Sets the output canvas: portrait 9:16 or landscape 16:9.</td><td>Portrait for TikTok, Reels, and Shorts; landscape for YouTube.</td></tr>
+      <tr><td>Fit Mode</td><td>Fill/crop uses the whole canvas; Fit/black bars preserves the complete source frame.</td><td>Fill/crop for social video; Fit when cropping is unacceptable.</td></tr>
+      <tr><td>Clip Duration</td><td>Maximum duration of each visual segment, not total video duration. The pipeline keeps adding clips until narration is covered.</td><td>5 seconds; fal.ai supports 3–15 seconds.</td></tr>
+      <tr><td>Clip Speed</td><td>Changes visual playback only. Voiceover, subtitles, and the clip duration limit are unchanged.</td><td>1.0×.</td></tr>
+      <tr><td>Videos per Run</td><td>Creates multiple final variants from the same task.</td><td>1 while testing; 2–3 for variation.</td></tr>
+      <tr><td>Video Encoder</td><td>Selects the final FFmpeg encoder.</td><td>Default/libx264 unless a tested hardware encoder is available.</td></tr>
+    </tbody></table>
+  </section>
+
+  <section id="providers">
+    <h2>Providers and API keys</h2>
+    <p class="section-intro">Keys belong to the service they unlock. Configure them once in Settings; tasks reuse the saved configuration.</p>
+    <table><thead><tr><th>Purpose</th><th>Recommended provider</th><th>Where to configure</th></tr></thead><tbody>
+      <tr><td>Script and keywords</td><td>OpenAI (or another supported LLM)</td><td>Settings → LLM Settings → provider, API key, model, Base URL</td></tr>
+      <tr><td>Generated video</td><td>fal.ai</td><td>Settings → Material API → AI Video Generation APIs → fal.ai</td></tr>
+      <tr><td>Stock video</td><td>Pexels / Pixabay / Coverr</td><td>Settings → Material API → Stock Video APIs</td></tr>
+      <tr><td>Narration</td><td>Edge TTS for simple setup; another supported TTS for production voice control</td><td>Audio Settings and the relevant provider key section</td></tr>
+      <tr><td>Background music</td><td>Random/local music for no API cost; Sonilo or ElevenLabs for generated music</td><td>Audio Settings and provider-specific music settings</td></tr>
+    </tbody></table>
+    <div class="callout"><strong>OpenAI + fal.ai example:</strong><pre><code>llm_provider = "openai"
+openai_api_key = "your-openai-api-key"
+openai_model_name = "gpt-5.5"
+openai_base_url = "https://api.openai.com/v1"
+
+fal_api_key = "your-fal-api-key"
+video_source = "fal"</code></pre><p>Keep real credentials in your local <code>config.toml</code>; never commit it. fal.ai also accepts <code>FAL_KEY</code> as an environment variable.</p></div>
+    <p>Use the provider status message in Settings before testing. “Configuration ready” means the key, model, and endpoint are present; “Test Model Connection” verifies the actual request.</p>
+  </section>
+
+  <section id="audio">
+    <h2>Audio Settings</h2>
+    <div class="grid">
+      <article class="card"><h3>Voiceover Mode</h3><p><strong>Auto</strong> generates narration from the script. <strong>Upload</strong> uses your audio file. <strong>None</strong> produces a video without narration.</p></article>
+      <article class="card"><h3>Voice, volume, and speed</h3><p>Voice selects the speaker; volume scales it; speed changes automatic narration timing. The narration duration controls how much visual material is required.</p></article>
+      <article class="card"><h3>Background music</h3><p>Choose random built-in music, a local file, or a configured generation provider. Keep background volume low enough that speech remains clear.</p></article>
+      <article class="card"><h3>Custom audio</h3><p>Uploaded narration replaces TTS while still allowing subtitles to be generated from the script.</p></article>
+    </div>
+  </section>
+
+  <section id="subtitles">
+    <h2>Subtitle Settings</h2>
+    <p class="section-intro">Subtitles are generated from the script and aligned to the narration. Use readable contrast and avoid placing text over important faces or UI.</p>
+    <div class="grid">
+      <article class="card"><h3>Enabled and position</h3><p>Enable subtitles and choose top, center, bottom, two-thirds bottom, or a custom position.</p></article>
+      <article class="card"><h3>Display and animation</h3><p>Sentence/word display and animation affect how captions appear, not the spoken content.</p></article>
+      <article class="card"><h3>Font, size, color, stroke</h3><p>Use a font installed in the runtime. White text with a dark stroke is a reliable cross-footage default.</p></article>
+      <article class="card"><h3>Background</h3><p>A solid or rounded background improves accessibility on busy footage; use it when the source visuals have high contrast variation.</p></article>
+    </div>
+  </section>
+
+  <section id="render">
+    <h2>Rendering and reliability</h2>
+    <div class="grid">
+      <article class="card"><h3>FFmpeg</h3><p>Required for audio, subtitles, concatenation, and final encoding. If hardware encoding is unavailable, the app falls back to libx264.</p></article>
+      <article class="card"><h3>Thread count</h3><p>Controls render parallelism. Start with the default; increase only when CPU, memory, and thermal headroom are known.</p></article>
+      <article class="card"><h3>Provider status</h3><p>Check key presence first, then use the provider connection test. A valid-looking key can still fail because of an invalid model, endpoint, quota, network, or account permissions.</p></article>
+      <article class="card"><h3>Paid providers</h3><p>fal.ai, WaveSpeed, OFox, MiniMax, and batch services can create billable jobs. Review the estimate and confirmation control before starting.</p></article>
+    </div>
+  </section>
+
+  <section id="flow">
+    <h2>Recommended first run</h2>
+    <ol>
+      <li>Configure OpenAI in <strong>LLM Settings</strong>; confirm the status says ready and test the connection.</li>
+      <li>Configure fal.ai in <strong>Material API</strong>; confirm its key status is ready.</li>
+      <li>Enter a specific subject and let the LLM generate the script and keywords.</li>
+      <li>Choose portrait 9:16, 5-second clips, 1 video, 1.0× speed, and subtitles enabled.</li>
+      <li>Select fal.ai, review the paid clip estimate, confirm the charge, and generate.</li>
+      <li>If the run fails, read the provider-specific error before changing unrelated settings.</li>
+    </ol>
+  </section>
+
+  <footer>MoneyPrinterTurbo settings guide. Provider capabilities, model names, pricing, and endpoint requirements can change; use each provider’s current dashboard and documentation for account-specific limits.</footer>
+</main>
+</body>
+</html>

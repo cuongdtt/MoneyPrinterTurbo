@@ -17,6 +17,7 @@ from app.models.schema import VideoConcatMode, VideoParams
 from app.services import bgm as bgm_service
 from app.services import (
     elevenlabs_music,
+    fal,
     llm,
     loomloom,
     material,
@@ -765,6 +766,17 @@ def get_video_materials(
                 details=details,
             )
             return None
+        except fal.FalError as exc:
+            remote_request_id = str(getattr(exc, "request_id", "") or "").strip()
+            _mark_task_failed(
+                task_id,
+                "materials",
+                str(exc),
+                details={"fal_request_id": remote_request_id}
+                if remote_request_id
+                else None,
+            )
+            return None
         except metaso_minimax.MetasoMiniMaxError as exc:
             # 秘塔任务与方舟任务使用不同的恢复入口和字段名，不能合并成一个
             # 模糊的 remote_task_id。保留明确 Provider 前缀便于 API、WebUI
@@ -1312,6 +1324,17 @@ def _run_pipeline(
             task_id,
             "preflight",
             "OFox video generation requires an OFox API key",
+        )
+
+    if (
+        stop_at in {"materials", "video"}
+        and params.video_source == "fal"
+        and not fal.is_enabled()
+    ):
+        return _mark_task_failed(
+            task_id,
+            "preflight",
+            "fal.ai video generation requires an API key",
         )
 
     if (

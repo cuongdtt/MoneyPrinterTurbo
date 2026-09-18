@@ -18,6 +18,7 @@ from PIL import Image, UnidentifiedImageError
 from app.config import config
 from app.models.schema import MaterialInfo, VideoAspect, VideoConcatMode
 from app.services import (
+    fal,
     material_cache,
     metaso_minimax,
     ofox,
@@ -1729,6 +1730,15 @@ def download_videos(
             max_clip_duration=max_clip_duration,
             material_directory=material_directory,
         )
+    if source == "fal":
+        return _download_videos_fal_on_demand(
+            task_id=task_id,
+            search_terms=search_terms,
+            video_aspect=video_aspect,
+            audio_duration=audio_duration,
+            max_clip_duration=max_clip_duration,
+            material_directory=material_directory,
+        )
     if source == "metaso_minimax":
         # 秘塔 MiniMax 同样按远端异步任务计费。它与火山方舟的请求体相似，
         # 但任务查询路径和响应结构不同，因此只共享本地按需生成语义，不复用
@@ -2122,6 +2132,62 @@ def _download_videos_ofox_on_demand(
             break
 
     logger.success(f"generated and downloaded {len(video_paths)} OFox videos")
+    _persist_material_sources(task_id, material_sources)
+    return video_paths
+
+
+def _download_videos_fal_on_demand(
+    *,
+    task_id: str,
+    search_terms: List[str],
+    video_aspect: VideoAspect,
+    audio_duration: float,
+    max_clip_duration: int,
+    material_directory: str,
+) -> List[str]:
+    """Buy fal clips one at a time until the narration is covered."""
+    video_paths: List[str] = []
+    material_sources: list[dict[str, Any]] = []
+    try:
+        required_duration = float(audio_duration)
+    except (TypeError, ValueError) as exc:
+        raise fal.FalError("fal.ai audio duration must be finite") from exc
+    if not math.isfinite(required_duration):
+        raise fal.FalError("fal.ai audio duration must be finite")
+    if required_duration <= 0:
+        return video_paths
+    try:
+        clip_duration = int(max_clip_duration)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise fal.FalError("fal.ai clip duration must be positive") from exc
+    if clip_duration <= 0:
+        raise fal.FalError("fal.ai clip duration must be positive")
+
+    total_duration = 0.0
+    for search_term in search_terms:
+        try:
+            video_items = fal.generate_videos(search_term, clip_duration, video_aspect)
+            for item in video_items:
+                saved_path = _save_generated_video_with_retry(
+                    item.url, material_directory, "fal"
+                )
+                if not saved_path:
+                    source_info = item.source_info or {}
+                    raise fal.FalDownloadError(
+                        "fal.ai generated a paid video but it could not be downloaded",
+                        str(source_info.get("asset_id") or ""),
+                    )
+                video_paths.append(saved_path)
+                material_sources.append(_material_source_record(item, saved_path))
+                total_duration += min(clip_duration, item.duration)
+                if total_duration >= required_duration:
+                    break
+        except fal.FalError:
+            _persist_material_sources(task_id, material_sources)
+            raise
+        if total_duration >= required_duration:
+            break
+
     _persist_material_sources(task_id, material_sources)
     return video_paths
 

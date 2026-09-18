@@ -168,6 +168,7 @@ Thanks to [Kimi](https://platform.kimi.ai?track_id=track-f6b0a640d35c41deb03b247
 - [x] Use the native [Volcano Engine Ark Seedance](https://console.volcengine.com/ark/region:ark+cn-beijing/apikey) integration to generate cohesive visuals from individual script segments
 - [x] Turn script keywords into original video footage with [WaveSpeed AI](https://wavespeed.ai)
 - [x] Access Seedance, Wan, and other text-to-video models through [OFox](https://ofox.ai) with a single API key
+- [x] Generate text-to-video clips through [fal.ai](https://fal.ai/models/fal-ai/kling-video/v3/turbo/standard/text-to-video/api) using the supported Kling V3 Turbo Standard endpoint (3–15 seconds, 16:9/9:16/1:1). Set `fal_api_key` or `FAL_KEY`; each submitted clip may be billed
 - [x] Connect [OpenAI-compatible text-to-image](https://platform.openai.com/docs/guides/image-generation) services or custom image gateways and turn generated images into animated video clips
 - [x] Adjust clip duration, frame fitting, and material order to suit different aspect ratios and storytelling styles
 

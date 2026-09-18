@@ -31,6 +31,7 @@ SUPPORTED_SOURCES = {
     "coverr",
     "volcengine_seedance",
     "ofox",
+    "fal",
     "metaso_minimax",
     "local",
 }
@@ -220,6 +221,7 @@ def apply_environment_config(config_path: Path) -> None:
     pexels_key = os.environ.get("MPT_PEXELS_API_KEY", "").strip()
     seedance_key = os.environ.get("MPT_VOLCENGINE_ARK_API_KEY", "").strip()
     ofox_key = os.environ.get("MPT_OFOX_API_KEY", "").strip()
+    fal_key = os.environ.get("MPT_FAL_API_KEY", "").strip()
     metaso_minimax_key = os.environ.get(
         "MPT_METASO_MINIMAX_API_KEY", ""
     ).strip()
@@ -232,6 +234,7 @@ def apply_environment_config(config_path: Path) -> None:
             pexels_key,
             seedance_key,
             ofox_key,
+            fal_key,
             metaso_minimax_key,
         )
     ):
@@ -264,6 +267,9 @@ def apply_environment_config(config_path: Path) -> None:
     if ofox_key:
         text = _replace_config_value(text, "ofox_api_key", ofox_key)
         changes.append("ofox_api_key")
+    if fal_key:
+        text = _replace_config_value(text, "fal_api_key", fal_key)
+        changes.append("fal_api_key")
     if metaso_minimax_key:
         text = _replace_config_value(
             text, "metaso_minimax_api_key", metaso_minimax_key
@@ -371,6 +377,14 @@ def missing_config(config_path: Path, cli_args: list[str]) -> tuple[str, list[st
             missing.append("ofox_api_key")
         if not has_cli_option(cli_args, "--confirm-ofox-charge"):
             missing.append("confirm_ofox_charge")
+    elif source == "fal":
+        value = _plain_config_value(text, "fal_api_key") or os.environ.get(
+            "FAL_KEY", ""
+        ).strip()
+        if not _has_configured_value(value):
+            missing.append("fal_api_key")
+        if not has_cli_option(cli_args, "--confirm-fal-charge"):
+            missing.append("confirm_fal_charge")
     elif source == "metaso_minimax":
         # 秘塔 Key 与 MiniMax 官方 LLM Key 不互通，Skill 必须沿用运行时的
         # 独立配置优先级，不能因为已经配置 minimax_api_key 就误判为可用。
@@ -400,6 +414,7 @@ def report_missing_config(provider: str, missing: list[str]) -> int:
         and field not in {
             "volcengine_seedance_api_key",
             "ofox_api_key",
+            "fal_api_key",
             "metaso_minimax_api_key",
         }
         for field in missing
@@ -430,6 +445,11 @@ def report_missing_config(provider: str, missing: list[str]) -> int:
         print("OFOX_API_KEY_ENV=MPT_OFOX_API_KEY")
     if "confirm_ofox_charge" in missing:
         print("OFOX_CHARGE_CONFIRMATION_REQUIRED=--confirm-ofox-charge")
+    if "fal_api_key" in missing:
+        print("FAL_API_KEY_URL=https://fal.ai/dashboard/keys")
+        print("FAL_API_KEY_ENV=MPT_FAL_API_KEY")
+    if "confirm_fal_charge" in missing:
+        print("FAL_CHARGE_CONFIRMATION_REQUIRED=--confirm-fal-charge")
     if "metaso_minimax_api_key" in missing:
         print("METASO_MINIMAX_API_KEY_ENV=MPT_METASO_MINIMAX_API_KEY")
     if "confirm_metaso_minimax_charge" in missing:

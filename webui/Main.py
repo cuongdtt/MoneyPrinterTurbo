@@ -45,6 +45,7 @@ from app.models.schema import (
 )
 from app.services import bgm as bgm_service
 from app.services import (
+    fal,
     cache_manager,
     llm,
     loomloom,
@@ -115,6 +116,7 @@ VIDEO_SOURCE_GROUPS = {
         "volcengine_seedance",
         "wavespeed",
         "ofox",
+        "fal",
     ),
     "ai_image": ("openai_image",),
     "local": ("local",),
@@ -571,6 +573,7 @@ def _initialize_session_state():
         "wavespeed_confirm_charge": False,
         "volcengine_seedance_confirm_charge": False,
         "ofox_confirm_charge": False,
+        "fal_confirm_charge": False,
         "metaso_minimax_confirm_charge": False,
         # AI 视频按素材段计费，默认只生成一段，用户确认效果后再主动增加数量。
         "loomloom_video_scene_count": _saved_ui_number(
@@ -3226,6 +3229,21 @@ def _render_settings_dialog():
                     value=llm_model_name,
                     key=f"{llm_provider}_model_name_input",
                 )
+
+            # Show configuration readiness before the user has to run a task.
+            # The status deliberately reports presence, not the secret itself.
+            effective_llm_key = str(st_llm_api_key or "").strip()
+            effective_llm_model = str(st_llm_model_name or "").strip()
+            effective_llm_base_url = str(st_llm_base_url or "").strip()
+            if not effective_llm_key:
+                llm_form_panel.warning(tr("LLM API Key Missing"))
+            elif not effective_llm_model:
+                llm_form_panel.warning(tr("LLM Model Missing"))
+            elif not effective_llm_base_url:
+                llm_form_panel.warning(tr("LLM Base URL Missing"))
+            else:
+                llm_form_panel.success(tr("LLM Configuration Ready"))
+
             # 输入框展示 Registry 默认值，但配置只保存真实的用户覆盖值。
             # 这样默认模型、Base URL 更新后，未自定义的用户能够自动跟随。
             _set_runtime_config(
@@ -3282,7 +3300,11 @@ def _render_settings_dialog():
                     else:
                         with llm_form_panel.spinner(tr("Testing LLM Connection")):
                             connection_ok, connection_error, connection_elapsed = (
-                                llm.test_connection()
+                                llm.test_connection(
+                                    app_config=config.snapshot_config_with_pending(
+                                        config.app
+                                    )
+                                )
                             )
 
                 if not lock_acquired:
@@ -3614,6 +3636,23 @@ def _render_settings_dialog():
                     help=tr("OFox Upstream Vendor Help"),
                 )
                 _set_runtime_config("app", "ofox_provider", selected_ofox_vendor)
+
+                st.divider()
+                st.markdown("**fal.ai**")
+                fal_api_key = st.text_input(
+                    tr("fal.ai API Key"),
+                    value=str(config.app.get("fal_api_key", "") or ""),
+                    type="password",
+                    key="fal_api_key_input",
+                )
+                _set_runtime_config("app", "fal_api_key", fal_api_key.strip())
+                if fal.get_api_key(
+                    config.snapshot_config_with_pending(config.app)
+                ):
+                    st.success(tr("fal.ai Configuration Ready"))
+                else:
+                    st.warning(tr("fal.ai API Key Missing"))
+                st.caption(tr("fal.ai Model Help"))
 
             with st.container(border=True):
                 st.markdown(f"#### {tr('AI Image Generation APIs')}")
@@ -4452,6 +4491,7 @@ def _render_video_settings(panel, params):
                 "wavespeed": tr("WaveSpeed AI Video"),
                 "volcengine_seedance": tr("Volcano Engine Seedance"),
                 "ofox": tr("OFox AI Video"),
+                "fal": tr("fal.ai AI Video"),
                 "metaso_minimax": tr("Metaso MiniMax H3"),
                 "loomloom": tr("Shengsuan Cloud AI Video"),
                 "openai_image": tr("OpenAI Compatible Text-to-Image"),
@@ -4482,6 +4522,8 @@ def _render_video_settings(panel, params):
                 st.caption(tr("Volcano Engine Seedance Help"))
             if params.video_source == "ofox":
                 st.caption(tr("OFox AI Video Help"))
+            if params.video_source == "fal":
+                st.caption(tr("fal.ai AI Video Help"))
             if params.video_source == "metaso_minimax":
                 st.caption(tr("Metaso MiniMax H3 Help"))
             if params.video_source == "local":
@@ -4623,23 +4665,24 @@ def _render_video_settings(panel, params):
 
             # MiniMax H3 的远端时长范围是 4～15 秒。选择秘塔时使用完整能力
             # 范围，既避免 2/3 秒被按 4 秒计费，也让 WebUI 与 CLI、服务层一致。
-            video_clip_durations = (
-                list(
+            if params.video_source == "metaso_minimax":
+                video_clip_durations = list(
                     range(
                         metaso_minimax.DEFAULT_MIN_DURATION_SECONDS,
                         metaso_minimax.DEFAULT_MAX_DURATION_SECONDS + 1,
                     )
                 )
-                if params.video_source == "metaso_minimax"
-                else [2, 3, 4, 5, 6, 7, 8, 9, 10]
-            )
+            elif params.video_source == "fal":
+                video_clip_durations = list(range(fal.MIN_DURATION, fal.MAX_DURATION + 1))
+            else:
+                video_clip_durations = [2, 3, 4, 5, 6, 7, 8, 9, 10]
             params.video_clip_duration = stable_selectbox(
                 tr("Clip Duration"),
                 options=video_clip_durations,
                 default_value=_saved_ui_choice(
                     "video_clip_duration",
                     video_clip_durations,
-                    5 if params.video_source == "metaso_minimax" else 3,
+                    5 if params.video_source in {"metaso_minimax", "fal"} else 3,
                 ),
                 key="video_clip_duration_select",
                 help=tr("Clip Duration Help"),
@@ -4720,6 +4763,8 @@ def _render_video_settings(panel, params):
                 _render_seedance_video_settings(params)
             if params.video_source == "ofox":
                 _render_ofox_video_settings(params)
+            if params.video_source == "fal":
+                _render_fal_video_settings(params)
             if params.video_source == "metaso_minimax":
                 _render_metaso_minimax_video_settings(params)
     return uploaded_files
@@ -4804,6 +4849,29 @@ def _render_ofox_video_settings(params):
         tr("Confirm OFox Charge"),
         key="ofox_confirm_charge",
         help=tr("Confirm OFox Charge Help"),
+    )
+
+
+def _render_fal_video_settings(params):
+    clip_duration = min(
+        max(int(params.video_clip_duration or 1), fal.MIN_DURATION), fal.MAX_DURATION
+    )
+    video_count = max(int(params.video_count or 1), 1)
+    estimated_range = _estimate_voiceover_duration_range(
+        str(params.video_script or ""), params.voice_rate
+    )
+    if estimated_range:
+        min_clips = max(math.ceil(estimated_range[0] * video_count / clip_duration), 1)
+        max_clips = max(
+            math.ceil(estimated_range[1] * video_count / clip_duration), min_clips
+        )
+        st.warning(tr("fal.ai Billing Notice").format(min=min_clips, max=max_clips))
+    else:
+        st.warning(tr("fal.ai Billing Notice Without Script"))
+    st.checkbox(
+        tr("Confirm fal.ai Charge"),
+        key="fal_confirm_charge",
+        help=tr("Confirm fal.ai Charge Help"),
     )
 
 
@@ -6654,6 +6722,7 @@ def _render_generation_controls(
             "wavespeed",
             "volcengine_seedance",
             "ofox",
+            "fal",
             "metaso_minimax",
             "loomloom",
             "openai_image",
@@ -6726,6 +6795,20 @@ def _render_generation_controls(
         ):
             _remove_active_generation_task(task_id)
             st.error(tr("Confirm OFox Charge Required"))
+            st.stop()
+
+        if params.video_source == "fal" and not fal.is_enabled(
+            config.snapshot_config_with_pending(config.app)
+        ):
+            _remove_active_generation_task(task_id)
+            st.error(tr("Please Enter the fal.ai API Key"))
+            st.stop()
+
+        if params.video_source == "fal" and not st.session_state.get(
+            "fal_confirm_charge", False
+        ):
+            _remove_active_generation_task(task_id)
+            st.error(tr("Confirm fal.ai Charge Required"))
             st.stop()
 
         if params.video_source == "metaso_minimax" and not (

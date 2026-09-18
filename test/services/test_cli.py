@@ -227,6 +227,22 @@ class TestCli(unittest.TestCase):
         )
         self.assertEqual(cli.build_video_params(args).video_source, "ofox")
 
+    def test_fal_video_source_requires_explicit_charge_confirmation(self):
+        with self.assertRaises(SystemExit) as raised:
+            cli.parse_args(["--video-subject", "test", "--video-source", "fal"])
+        self.assertEqual(raised.exception.code, 2)
+
+        args = cli.parse_args(
+            [
+                "--video-subject",
+                "test",
+                "--video-source",
+                "fal",
+                "--confirm-fal-charge",
+            ]
+        )
+        self.assertEqual(cli.build_video_params(args).video_source, "fal")
+
     def test_ofox_confirmation_is_not_required_before_material_stage(self):
         args = cli.parse_args(
             [

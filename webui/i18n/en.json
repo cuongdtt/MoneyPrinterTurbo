@@ -366,6 +366,12 @@
     "Runtime Configuration Busy": "A video task is using the current service settings. Try again after it finishes.",
     "LLM Connection Test Succeeded": "Connection successful: {provider} / {model} ({elapsed}s)",
     "LLM Connection Test Failed": "Connection failed: {error}",
+    "LLM API Key Missing": "API key is missing. Enter it above and save the settings.",
+    "LLM Model Missing": "Model name is missing. Enter a model supported by this provider.",
+    "LLM Base URL Missing": "Base URL is missing. Select an endpoint or enter a compatible URL.",
+    "LLM Configuration Ready": "Configuration ready: API key, model, and endpoint are present.",
+    "fal.ai API Key Missing": "fal.ai API key is missing. Add it in this section or set FAL_KEY.",
+    "fal.ai Configuration Ready": "fal.ai configuration ready: API key is present.",
     "Video Source Settings": "**Video Source Settings**",
     "Coverr": "Coverr",
     "Coverr API Key": "Coverr API Key ([Get API Key](https://coverr.co/developers?ctx=header_navigation))",
@@ -489,6 +495,16 @@
     "OFox Upstream Vendor Help": "Which upstream vendor serves OFox video generation. BytePlus (international) is the default with a consistent content policy; Volcano Engine is the mainland-China vendor; Auto lets the OFox gateway load-balance across vendors.",
     "OFox Vendor BytePlus": "BytePlus (International, default)",
     "OFox Vendor Volcengine": "Volcano Engine (Mainland China)",
-    "OFox Vendor Auto": "Auto (gateway load balancing)"
+    "OFox Vendor Auto": "Auto (gateway load balancing)",
+    "fal.ai AI Video": "fal.ai AI Video",
+    "fal.ai AI Video Help": "Generate new video clips from script keywords with fal.ai's Kling V3 Turbo Standard text-to-video model. Each submitted clip may be billed.",
+    "fal.ai API Key": "fal.ai API Key ([Get API Key](https://fal.ai/dashboard/keys))",
+    "fal.ai Model Help": "Supported model: Kling V3 Turbo Standard. This integration accepts 3–15 second clips and 16:9, 9:16, or 1:1 output.",
+    "Please Enter the fal.ai API Key": "Please enter the fal.ai API Key or set FAL_KEY.",
+    "fal.ai Billing Notice": "fal.ai may bill each generated clip. The estimated voiceover needs roughly {min}-{max} paid task(s). Generation stops when enough footage is collected.",
+    "fal.ai Billing Notice Without Script": "fal.ai may bill each generated clip. Enter or generate a script to see the estimated task count.",
+    "Confirm fal.ai Charge": "I understand fal.ai video generation may create paid tasks",
+    "Confirm fal.ai Charge Help": "Clips are submitted one at a time. Generation stops once they cover the voiceover duration.",
+    "Confirm fal.ai Charge Required": "Please confirm the fal.ai charge before generating the video."
   }
 }
